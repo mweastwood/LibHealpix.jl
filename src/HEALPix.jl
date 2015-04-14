@@ -8,7 +8,7 @@ export vec2pix_nest, vec2pix_ring
 export pix2vec_nest, pix2vec_ring
 export ang2vec, vec2ang
 
-const libchealpix = "./libchealpix.so"
+const libchealpix = "libchealpix"
 
 const NULL = -1.6375e30 # Defined by the Healpix standard (?)
 

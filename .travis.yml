@@ -1,0 +1,14 @@
+language: julia
+julia:
+    - nightly
+notifications:
+    email: false
+before_install:
+    - sudo apt-get update -qq -y
+    - sudo apt-get install libchealpix-dev -y
+script:
+    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.test(\"HEALPix\"; coverage=true)"
+after_success:
+    - julia -e "cd(Pkg.dir(\"HEALPix\")); Pkg.add(\"Coverage\"); using Coverage; Coveralls.submit(Coveralls.process_folder())"
+
