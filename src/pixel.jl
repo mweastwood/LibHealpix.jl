@@ -22,9 +22,10 @@ for T in (:Clong,:Clonglong)
     funcname(f) = (T==:Clong)? string(f) : string(f)*"64"
 
     for f in (:ang2pix_nest,:ang2pix_ring)
-        @eval function $f(nside::$T,theta::Cdouble,phi::Cdouble)
+        @eval function $f(nside::$T,θ::Cdouble,ϕ::Cdouble)
             ipixptr = Array($T,1)
-            ccall(($(funcname(f)),libchealpix),Void,($T,Cdouble,Cdouble,Ptr{$T}),nside,theta,phi,ipixptr)
+            0 <= θ <= π || error("θ is out of range")
+            ccall(($(funcname(f)),libchealpix),Void,($T,Cdouble,Cdouble,Ptr{$T}),nside,θ,ϕ,ipixptr)
             ipixptr[1] + 1 # Add one to convert to a 1-indexed scheme
         end
     end
@@ -32,10 +33,10 @@ for T in (:Clong,:Clonglong)
     for f in (:pix2ang_nest,:pix2ang_ring)
         @eval function $f(nside::$T,ipix::$T)
             ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
-            thetaptr = Array(Cdouble,1)
-            phiptr   = Array(Cdouble,1)
-            ccall(($(funcname(f)),libchealpix),Void,($T,$T,Ptr{Cdouble},Ptr{Cdouble}),nside,ipix,thetaptr,phiptr)
-            thetaptr[1],phiptr[1]
+            θptr = Array(Cdouble,1)
+            ϕptr   = Array(Cdouble,1)
+            ccall(($(funcname(f)),libchealpix),Void,($T,$T,Ptr{Cdouble},Ptr{Cdouble}),nside,ipix,θptr,ϕptr)
+            θptr[1],ϕptr[1]
         end
     end
 
@@ -70,16 +71,16 @@ for T in (:Clong,:Clonglong)
     end
 end
 
-function ang2vec(theta::Cdouble,phi::Cdouble)
+function ang2vec(θ::Cdouble,ϕ::Cdouble)
     vec = Array(Cdouble,3)
-    ccall(("ang2vec",libchealpix),Void,(Cdouble,Cdouble,Ptr{Cdouble}),theta,phi,vec)
+    ccall(("ang2vec",libchealpix),Void,(Cdouble,Cdouble,Ptr{Cdouble}),θ,ϕ,vec)
     vec
 end
 
 function vec2ang(vec::Vector{Cdouble})
-    thetaptr = Array(Cdouble,1)
-    phiptr   = Array(Cdouble,1)
-    ccall(("vec2ang",libchealpix),Void,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}),vec,thetaptr,phiptr)
-    thetaptr[1],phiptr[1]
+    θptr = Array(Cdouble,1)
+    ϕptr = Array(Cdouble,1)
+    ccall(("vec2ang",libchealpix),Void,(Ptr{Cdouble},Ptr{Cdouble},Ptr{Cdouble}),vec,θptr,ϕptr)
+    θptr[1],ϕptr[1]
 end
 
