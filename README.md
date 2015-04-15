@@ -1,5 +1,7 @@
-HEALPix.jl
-==========
+# HEALPix.jl
+
+[![Build Status](https://travis-ci.org/mweastwood/HEALPix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/HEALPix.jl)
+[![Coverage Status](https://coveralls.io/repos/mweastwood/HEALPix.jl/badge.svg?branch=master)](https://coveralls.io/r/mweastwood/HEALPix.jl?branch=master)
 
 Julia wrapper for <a href="http://healpix.jpl.nasa.gov/">HEALPix</a>. 
 
