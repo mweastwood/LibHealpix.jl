@@ -14,6 +14,12 @@ before_install:
     - sudo apt-get -b source libchealpix-dev -y
     - sudo dpkg -i libchealpix0*.deb
     - sudo dpkg -i libchealpix-dev*.deb
+    - sudo apt-get build-dep libhealpix-cxx0 -y
+    - sudo apt-get build-dep libhealpix-cxx-dev -y
+    - sudo apt-get -b source libhealpix-cxx0 -y
+    - sudo apt-get -b source libhealpix-cxx-dev -y
+    - sudo dpkg -i libhealpix-cxx0*.deb
+    - sudo dpkg -i libhealpix-cxx-dev*.deb
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.test(\"HEALPix\"; coverage=true)"

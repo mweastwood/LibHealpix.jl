@@ -20,11 +20,13 @@ export HEALPixMap
 import Base: length, getindex, setindex!
 
 const libchealpix = "libchealpix"
+const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
 
-const NULL = -1.6375e30 # Defined by the Healpix standard (?)
+const UNDEF = -1.6375e30 # Defined by the Healpix standard
 
-include("map.jl")
 include("pixel.jl")
+include("map.jl")
+include("transforms.jl")
 include("mollweide.jl")
 
 end
