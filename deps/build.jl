@@ -10,6 +10,7 @@ dir = joinpath(depsdir,"downloads")
 run(`mkdir -p $dir`)
 run(`curl -o $(joinpath(dir,gz)) -L $url`)
 run(`tar -xzf $(joinpath(dir,gz)) -C $dir`)
+run(`./build_healpix.sh`)
 
 # Build the HEALPix wrapper
 println("Building the HEALPix wrapper...")

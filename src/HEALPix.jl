@@ -19,7 +19,7 @@ export HEALPixMap
 
 import Base: length, getindex, setindex!
 
-const libchealpix = "libchealpix"
+const libchealpix = joinpath(dirname(@__FILE__),"../deps/downloads/Healpix_3.20/lib/libchealpix.so")
 const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
 
 const UNDEF = -1.6375e30 # Defined by the Healpix standard
