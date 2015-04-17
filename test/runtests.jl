@@ -1,6 +1,8 @@
 using HEALPix
 using Base.Test
 
+srand(123)
+
 for nside = 1:5
     npix = 12*nside^2
     @test HEALPix.nside2npix(nside) == npix
@@ -18,5 +20,17 @@ let nside = 16
     for i = 1:HEALPix.nside2npix(nside)
         @test HEALPix.nest2ring(nside,HEALPix.ring2nest(nside,i)) == i
     end
+end
+
+let nside = 16
+    npix = HEALPix.nside2npix(nside)
+    map = HEALPixMap(rand(npix))
+    alm = map2alm(map,lmax=25,mmax=25)
+
+    # Note that the algorithm used by alm2map/map2alm isn't particularly accurate
+    # (hence the rough tolerance)
+    map1 = alm2map(alm)
+    map2 = alm2map(map2alm(map1))
+    @test vecnorm(HEALPix.pixels(map1)-HEALPix.pixels(map2))/vecnorm(HEALPix.pixels(map1)) < 0.01
 end
 
