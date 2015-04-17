@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-type HEALPixMap{T<:FloatingPoint,nside,ring}
-    map::Vector{T}
+@enum Order ring nest
+
+type HEALPixMap{T<:FloatingPoint,nside,order}
+    pixels::Vector{T}
     function HEALPixMap(vec)
         if npix2nside(length(vec)) != nside
             error("HEALPixMap with nside=$nside must have length $(nside2npix(nside)).")
@@ -23,27 +25,65 @@ type HEALPixMap{T<:FloatingPoint,nside,ring}
     end
 end
 
-HEALPixMap{T}(nside::Int,ring::Bool,vec::Vector{T}) = HEALPixMap{T,nside,ring}(vec)
+HEALPixMap{T}(nside::Int,order::Order,vec::Vector{T}) = HEALPixMap{T,nside,order}(vec)
 
-function HEALPixMap{T}(vec::Vector{T};ring::Bool=true)
+function HEALPixMap{T}(vec::Vector{T};order::Order=ring)
     nside = npix2nside(length(vec))
     if nside == -1
         error("The supplied vector does not have a valid length.")
     end
-    HEALPixMap(nside,ring,vec)
+    HEALPixMap(nside,order,vec)
 end
 
-length(map::HEALPixMap) = length(map.map)
-getindex(map::HEALPixMap,i) = map.map[i]
-setindex!(map::HEALPixMap,x,i) = map.map[i] = x
+pixels(map::HEALPixMap) = map.pixels
+length(map::HEALPixMap) = length(pixels(map))
+getindex(map::HEALPixMap,i) = pixels(map)[i]
+setindex!(map::HEALPixMap,x,i) = pixels(map)[i] = x
 
-nside{T,_nside,ring}(map::HEALPixMap{T,_nside,ring}) = _nside
+nside{T,_nside,order}(map::HEALPixMap{T,_nside,order}) = _nside
 npix(map::HEALPixMap) = nside2npix(nside(map))
 nring(map::HEALPixMap) = 4nside(map)-1
 
-isring{T,nside,ring}(map::HEALPixMap{T,nside,ring}) = ring
-isnest{T,nside,ring}(map::HEALPixMap{T,nside,ring}) = !ring
+isring{T,nside,order}(map::HEALPixMap{T,nside,order}) = order == ring
+isnest{T,nside,order}(map::HEALPixMap{T,nside,order}) = order == nest
 
-getindex{T,nside}(map::HEALPixMap{T,nside,true},θ,ϕ) = getindex(map,ang2pix_ring(nside,θ,ϕ))
-getindex{T,nside}(map::HEALPixMap{T,nside,false},θ,ϕ) = getindex(map,ang2pix_nest(nside,θ,ϕ))
+getindex{T,nside}(map::HEALPixMap{T,nside,ring},θ,ϕ) = getindex(map,ang2pix_ring(nside,θ,ϕ))
+getindex{T,nside}(map::HEALPixMap{T,nside,nest},θ,ϕ) = getindex(map,ang2pix_nest(nside,θ,ϕ))
+
+################################################################################
+# C++ wrapper methods
+
+type HEALPixMap_cxx
+    ptr::Ptr{Void}
+end
+
+function delete(map_cxx::HEALPixMap_cxx)
+    ccall(("deleteMap",libhealpixwrapper),Void,
+          (Ptr{Void},),pointer(map_cxx))
+end
+
+pointer(map_cxx::HEALPixMap_cxx) = map_cxx.ptr
+
+for f in (:nside,:npix)
+    @eval $f(map_cxx::HEALPixMap_cxx) = ccall(($(string(f)),libhealpixwrapper),Cint,(Ptr{Void},),pointer(map_cxx))
+end
+
+function to_cxx(map::HEALPixMap)
+    N = nside(map)
+    map_cxx = HEALPixMap_cxx(ccall(("newMap",libhealpixwrapper),Ptr{Void},
+                                   (Ptr{Complex128},Csize_t),
+                                   pointer(pixels(map)),Csize_t(N)))
+    finalizer(map_cxx,delete)
+    map_cxx
+end
+
+function to_julia(map_cxx::HEALPixMap_cxx)
+    # TODO: check and propagate the ordering of the C++ map
+    N = nside(map_cxx)
+    output = Array{Cdouble}(nside2npix(N))
+    ccall(("map2julia",libhealpixwrapper),Void,
+          (Ptr{Void},Ptr{Cdouble}),
+          pointer(map_cxx),pointer(output))
+    HEALPixMap(output)
+end
 

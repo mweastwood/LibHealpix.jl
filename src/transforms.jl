@@ -38,24 +38,6 @@ function num_alm(lmax::Int,mmax::Int)
               Csize_t(lmax),Csize_t(mmax)))
 end
 
-type HEALPixMap_cxx
-    ptr::Ptr{Void}
-end
-
-function HEALPixMap_cxx(vec::Vector{Float64})
-    nside = npix2nside(length(vec))
-    map = HEALPixMap_cxx(ccall(("newMap",libhealpixwrapper),Ptr{Void},
-                               (Ptr{Complex128},Csize_t),
-                               pointer(vec),Csize_t(nside)))
-    finalizer(map,delete_map)
-    map
-end
-
-function delete_map(map::HEALPixMap_cxx)
-    ccall(("deleteMap",libhealpixwrapper),Void,
-          (Ptr{Void},),map.ptr)
-end
-
 #function map2alm(map::HEALPixMap;lmax::Int=100,mmax::Int=100)
 #end
 
@@ -65,14 +47,10 @@ function alm2map(alm_vec::Vector{Complex128};nside::Int=32)
     npix = nside2npix(nside)
 
     alm = Alm(alm_vec,lmax,mmax)
-    map = HEALPixMap_cxx(zeros(Cdouble,npix))
-    output = zeros(Cdouble,npix)
+    map = HEALPixMap(zeros(Cdouble,npix)) |> to_cxx
     ccall(("alm2map",libhealpixwrapper),Void,
           (Ptr{Void},Ptr{Void}),
-          alm.ptr,map.ptr)
-    ccall(("map2julia",libhealpixwrapper),Void,
-          (Ptr{Void},Ptr{Cdouble}),
-          map.ptr,pointer(output))
-    HEALPixMap(nside,true,output)
+          alm.ptr,pointer(map))
+    map |> to_julia
 end
 

@@ -59,6 +59,8 @@ extern "C" {
         for (int i = 0; i < map->Npix(); ++i)
             output[i] = (*map)[i];
     }
+    int nside(Healpix_Map<double>* map) {return map->Nside();}
+    int npix(Healpix_Map<double>* map) {return map->Npix();}
 
     void alm2map(Alm<xcomplex<double> >* alm, Healpix_Map<double>* map)
     {

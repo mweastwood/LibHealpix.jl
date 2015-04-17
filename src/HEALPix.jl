@@ -17,7 +17,7 @@ module HEALPix
 
 export HEALPixMap
 
-import Base: length, getindex, setindex!
+import Base: length, getindex, setindex!, pointer
 
 const libchealpix = joinpath(dirname(@__FILE__),"../deps/downloads/Healpix_3.20/lib/libchealpix.so")
 const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
