@@ -13,44 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-type Alm
-    ptr::Ptr{Void}
-end
-
-function Alm(vec::Vector{Complex128},lmax::Int,mmax::Int)
-    num_alm(lmax,mmax) == length(vec) || error("length of vector inconsistent with given lmax, mmax")
-    alm = Alm(ccall(("newAlm",libhealpixwrapper),Ptr{Void},
-                    (Ptr{Complex128},Csize_t,Csize_t),
-                    pointer(vec),Csize_t(lmax),Csize_t(mmax)))
-    finalizer(alm,delete_alm)
-    alm
-end
-
-function delete_alm(alm::Alm)
-    ccall(("deleteAlm",libhealpixwrapper),Void,
-          (Ptr{Void},),alm.ptr)
-end
-
-function num_alm(lmax::Int,mmax::Int)
-    mmax > lmax && error("must have mmax ≤ lmax")
-    Int(ccall(("num_alm",libhealpixwrapper),Csize_t,
-              (Csize_t,Csize_t),
-              Csize_t(lmax),Csize_t(mmax)))
-end
-
 #function map2alm(map::HEALPixMap;lmax::Int=100,mmax::Int=100)
 #end
 
-function alm2map(alm_vec::Vector{Complex128};nside::Int=32)
-    lmax = 1 # hard coded for now
-    mmax = 1 # hard coded for now
+function alm2map(alm::Alm;nside::Int=32)
     npix = nside2npix(nside)
-
-    alm = Alm(alm_vec,lmax,mmax)
-    map = HEALPixMap(zeros(Cdouble,npix)) |> to_cxx
+    alm_cxx = alm |> to_cxx
+    map_cxx = HEALPixMap(zeros(Cdouble,npix)) |> to_cxx
     ccall(("alm2map",libhealpixwrapper),Void,
           (Ptr{Void},Ptr{Void}),
-          alm.ptr,pointer(map))
-    map |> to_julia
+          pointer(alm_cxx),pointer(map_cxx))
+    map_cxx |> to_julia
 end
 

@@ -15,7 +15,9 @@
 
 module HEALPix
 
-export HEALPixMap
+export HEALPixMap, Alm
+export alm2map
+export mollweide
 
 import Base: length, getindex, setindex!, pointer
 
@@ -26,6 +28,7 @@ const UNDEF = -1.6375e30 # Defined by the Healpix standard
 
 include("pixel.jl")
 include("map.jl")
+include("alm.jl")
 include("transforms.jl")
 include("mollweide.jl")
 
