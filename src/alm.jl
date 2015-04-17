@@ -54,6 +54,10 @@ end
 
 pointer(alm_cxx::Alm_cxx) = alm_cxx.ptr
 
+for f in (:lmax,:mmax)
+    @eval $f(alm_cxx::Alm_cxx) = ccall(($(string(f)),libhealpixwrapper),Cint,(Ptr{Void},),pointer(alm_cxx))
+end
+
 function to_cxx(alm::Alm)
     l = lmax(alm)
     m = mmax(alm)
@@ -62,5 +66,16 @@ function to_cxx(alm::Alm)
                             pointer(coefficients(alm)),Csize_t(l),Csize_t(m)))
     finalizer(alm_cxx,delete)
     alm_cxx
+end
+
+function to_julia(alm_cxx::Alm_cxx)
+    l = lmax(alm_cxx)
+    m = mmax(alm_cxx)
+    N = num_alm(l,m)
+    output = Array{Complex128}(N)
+    ccall(("alm2julia",libhealpixwrapper),Void,
+          (Ptr{Void},Ptr{Complex128}),
+          pointer(alm_cxx),pointer(output))
+    Alm(Int(l),Int(m),output)
 end
 

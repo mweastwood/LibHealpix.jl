@@ -21,10 +21,7 @@
 using std::complex;
 
 extern "C" {
-    size_t num_alm(size_t lmax, size_t mmax)
-    {
-        return Alm_Base::Num_Alms(lmax,mmax);
-    }
+    size_t num_alm(size_t lmax, size_t mmax) {return Alm_Base::Num_Alms(lmax,mmax);}
 
     Alm<xcomplex<double> >* newAlm(complex<double>* vec_alm, size_t lmax, size_t mmax)
     {
@@ -38,6 +35,14 @@ extern "C" {
         alm->Set(arr_alm,lmax,mmax);
         return alm;
     }
-    void deleteAlm(Alm<complex<double> >* alm) {delete alm;}
+    void deleteAlm(Alm<xcomplex<double> >* alm) {delete alm;}
+    void alm2julia(Alm<xcomplex<double> >* alm, complex<double>* output)
+    {
+        arr<xcomplex<double> > arr_alm = alm->Alms();
+        for (uint i = 0; i < arr_alm.size(); ++i)
+            output[i] = arr_alm[i];
+    }
+    int lmax(Alm<xcomplex<double> >* alm) {return alm->Lmax();}
+    int mmax(Alm<xcomplex<double> >* alm) {return alm->Mmax();}
 }
 

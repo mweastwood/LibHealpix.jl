@@ -16,7 +16,7 @@
 module HEALPix
 
 export HEALPixMap, Alm
-export alm2map
+export map2alm, alm2map
 export mollweide
 
 import Base: length, getindex, setindex!, pointer
