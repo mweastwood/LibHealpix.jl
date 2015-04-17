@@ -84,3 +84,6 @@ function vec2ang(vec::Vector{Cdouble})
     θptr[1],ϕptr[1]
 end
 
+npix2nside(nside) = npix2nside(Clong(nside))
+nside2npix(nside) = nside2npix(Clong(nside))
+
