@@ -57,7 +57,6 @@ pointer(alm_cxx::Alm_cxx) = alm_cxx.ptr
 function to_cxx(alm::Alm)
     l = lmax(alm)
     m = mmax(alm)
-    @show alm l m
     alm_cxx = Alm_cxx(ccall(("newAlm",libhealpixwrapper),Ptr{Void},
                             (Ptr{Complex128},Csize_t,Csize_t),
                             pointer(coefficients(alm)),Csize_t(l),Csize_t(m)))
