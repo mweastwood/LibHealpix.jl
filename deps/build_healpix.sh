@@ -21,8 +21,8 @@ EOF
 
 ./configure -L << EOF
 4
-/usr/local/lib
-/usr/local/include
+
+
 2
 n
 0
