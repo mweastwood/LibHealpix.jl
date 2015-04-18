@@ -4,7 +4,7 @@ julia:
 notifications:
     email: false
 before_install:
-    - sudo apt-get install libcfitsio3 -y
+    - sudo apt-get install libcfitsio3-dev -y
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"HEALPix\"); Pkg.test(\"HEALPix\"; coverage=true)"
