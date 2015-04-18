@@ -13,24 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module HEALPix
-
-export HEALPixMap, Alm
-export map2alm, alm2map
-export mollweide
-
-import Base: length, getindex, setindex!, pointer
-
-const libchealpix = joinpath(dirname(@__FILE__),"../deps/downloads/Healpix_3.20/lib/libchealpix.so")
-const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
-
-const UNDEF = -1.6375e30 # Defined by the Healpix standard
-
-include("pixel.jl")
-include("map.jl")
-include("alm.jl")
-include("transforms.jl")
-include("mollweide.jl")
-
+function mollweide(map::HEALPixMap)
+    N = 2nring(map)
+    img = zeros(2N,N)
+    δ = 2/N
+    x = linspace(-2+δ/2,2-δ/2,2N)
+    y = linspace(-1+δ/2,1-δ/2,1N)
+    for j = 1:N
+        sinΩ = y[j]
+        cosΩ = sqrt(1-sinΩ^2)
+        Ω = asin(sinΩ)
+        for i = 1:2N
+            lat  = asin((2Ω + 2sinΩ*cosΩ)/π)
+            long = π * x[i] / (2cosΩ)
+            -π < long < π || continue
+            θ = π/2 - lat
+            ϕ = 2π - mod2pi(long + 2π)
+            img[i,j] = map[θ,ϕ]
+        end
+    end
+    img'
 end
 

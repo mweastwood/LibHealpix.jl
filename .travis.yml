@@ -4,19 +4,10 @@ julia:
 notifications:
     email: false
 before_install:
-    # The HEALPix libraries exist as packages for utopic
-    # (we can get these by building from source)
-    - sudo su -c "echo 'deb-src http://archive.ubuntu.com/ubuntu utopic main universe' >> /etc/apt/sources.list"
-    - sudo apt-get update -qq -y
-    - sudo apt-get build-dep libchealpix0 -y
-    - sudo apt-get build-dep libchealpix-dev -y
-    - sudo apt-get -b source libchealpix0 -y
-    - sudo apt-get -b source libchealpix-dev -y
-    - sudo dpkg -i libchealpix0*.deb
-    - sudo dpkg -i libchealpix-dev*.deb
+    - sudo apt-get install libcfitsio3-dev -y
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.test(\"HEALPix\"; coverage=true)"
+    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"HEALPix\"); Pkg.test(\"HEALPix\"; coverage=true)"
 after_success:
     - julia -e "cd(Pkg.dir(\"HEALPix\")); Pkg.add(\"Coverage\"); using Coverage; Coveralls.submit(Coveralls.process_folder())"
 
