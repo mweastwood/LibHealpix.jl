@@ -40,6 +40,8 @@ setindex!(alm::Alm,x,i) = coefficients(alm)[i] = x
 lmax{T,l,m}(alm::Alm{T,l,m}) = l
 mmax{T,l,m}(alm::Alm{T,l,m}) = m
 
+getindex(alm::Alm,l,m) = getindex(alm,div(m*(2lmax(alm)-m+3),2)+l-m+1)
+
 ################################################################################
 # C++ wrapper methods
 
