@@ -24,6 +24,7 @@ type Alm{T<:Complex,lmax,mmax}
 end
 
 Alm{T}(lmax::Int,mmax::Int,vec::Vector{T}) = Alm{T,lmax,mmax}(vec)
+Alm{T}(::Type{T},lmax::Int,mmax::Int) = Alm{T,lmax,mmax}(zeros(T,num_alm(lmax,mmax)))
 
 function num_alm(lmax::Csize_t,mmax::Csize_t)
     mmax > lmax && error("must have mmax ≤ lmax")
@@ -41,6 +42,7 @@ lmax{T,l,m}(alm::Alm{T,l,m}) = l
 mmax{T,l,m}(alm::Alm{T,l,m}) = m
 
 getindex(alm::Alm,l,m) = getindex(alm,div(m*(2lmax(alm)-m+3),2)+l-m+1)
+setindex!(alm::Alm,x,l,m) = setindex!(alm,x,div(m*(2lmax(alm)-m+3),2)+l-m+1)
 
 ################################################################################
 # C++ wrapper methods

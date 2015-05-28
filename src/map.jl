@@ -26,6 +26,7 @@ type HEALPixMap{T<:FloatingPoint,nside,order}
 end
 
 HEALPixMap{T}(nside::Int,order::Order,vec::Vector{T}) = HEALPixMap{T,nside,order}(vec)
+HEALPixMap{T}(::Type{T},nside::Int,order::Order=ring) = HEALPixMap{T,nside,order}(zeros(T,nside2npix(nside)))
 
 function HEALPixMap{T}(vec::Vector{T};order::Order=ring)
     nside = npix2nside(length(vec))
