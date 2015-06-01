@@ -41,8 +41,21 @@ setindex!(alm::Alm,x,i) = coefficients(alm)[i] = x
 lmax{T,l,m}(alm::Alm{T,l,m}) = l
 mmax{T,l,m}(alm::Alm{T,l,m}) = m
 
-getindex(alm::Alm,l,m) = getindex(alm,div(m*(2lmax(alm)-m+3),2)+l-m+1)
-setindex!(alm::Alm,x,l,m) = setindex!(alm,x,div(m*(2lmax(alm)-m+3),2)+l-m+1)
+function getindex(alm::Alm,l,m)
+    absm = abs(m)
+    output = getindex(alm,div(absm*(2lmax(alm)-absm+3),2)+l-absm+1)
+    ifelse(m ≥ 0, output, (-1)^absm*conj(output))
+end
+
+function setindex!(alm::Alm,x,l,m)
+    absm = abs(m)
+    x = ifelse(m ≥ 0, x, (-1)^absm*conj(x))
+    setindex!(alm,x,div(absm*(2lmax(alm)-absm+3),2)+l-absm+1)
+end
+
+for op in (:+,:-)
+    @eval $op(lhs::Alm,rhs::Alm) = Alm(lmax(lhs),mmax(lhs),$op(coefficients(lhs),coefficients(rhs)))
+end
 
 ################################################################################
 # C++ wrapper methods

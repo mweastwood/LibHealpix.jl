@@ -51,6 +51,10 @@ isnest{T,nside,order}(map::HEALPixMap{T,nside,order}) = order == nest
 getindex{T,nside}(map::HEALPixMap{T,nside,ring},θ,ϕ) = getindex(map,ang2pix_ring(nside,θ,ϕ))
 getindex{T,nside}(map::HEALPixMap{T,nside,nest},θ,ϕ) = getindex(map,ang2pix_nest(nside,θ,ϕ))
 
+for op in (:+,:-,:.*,:./)
+    @eval $op(lhs::HEALPixMap,rhs::HEALPixMap) = HEALPixMap($op(pixels(lhs),pixels(rhs)))
+end
+
 ################################################################################
 # C++ wrapper methods
 
