@@ -7,6 +7,8 @@
 > As suggested in the name, this pixelization produces a subdivision of a spherical
 > surface in which each pixel covers the same surface area as every other pixel.
 
+![A HEALPixMap in Mollweide projection](example.png)
+
 ## Getting Started
 
 To get started using HEALPix, run:
