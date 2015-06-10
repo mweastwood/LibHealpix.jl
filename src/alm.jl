@@ -57,6 +57,9 @@ for op in (:+,:-)
     @eval $op(lhs::Alm,rhs::Alm) = Alm(lmax(lhs),mmax(lhs),$op(coefficients(lhs),coefficients(rhs)))
 end
 
+*(lhs::Number,rhs::Alm) = Alm(lmax(rhs),mmax(rhs),lhs*coefficients(rhs))
+*(lhs::Alm,rhs::Number) = rhs*lhs
+
 ################################################################################
 # C++ wrapper methods
 

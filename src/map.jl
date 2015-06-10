@@ -55,6 +55,9 @@ for op in (:+,:-,:.*,:./)
     @eval $op(lhs::HEALPixMap,rhs::HEALPixMap) = HEALPixMap($op(pixels(lhs),pixels(rhs)))
 end
 
+*(lhs::Number,rhs::HEALPixMap) = HEALPixMap(lhs*pixels(rhs))
+*(lhs::HEALPixMap,rhs::Number) = rhs*lhs
+
 ################################################################################
 # C++ wrapper methods
 
