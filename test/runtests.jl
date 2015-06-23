@@ -27,10 +27,22 @@ let nside = 16
     map = HEALPixMap(rand(npix))
     alm = map2alm(map,lmax=25,mmax=25)
 
-    # Note that the algorithm used by alm2map/map2alm isn't particularly accurate
-    # (hence the rough tolerance)
+    # Note that the algorithm used by alm2map/map2alm isn't
+    # particularly accurate, hence the rough tolerance
     map1 = alm2map(alm)
     map2 = alm2map(map2alm(map1))
     @test vecnorm(HEALPix.pixels(map1)-HEALPix.pixels(map2))/vecnorm(HEALPix.pixels(map1)) < 0.01
+end
+
+# Test FITS I/O
+let nside = 16
+    filename = tempname()*".fits"
+    map = HEALPixMap(Float32,nside)
+    for i = 1:length(map)
+        map[i] = rand()
+    end
+    writehealpix(filename,map)
+    newmap = readhealpix(filename)
+    @test map == newmap
 end
 

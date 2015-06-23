@@ -58,6 +58,40 @@ end
 *(lhs::Number,rhs::HEALPixMap) = HEALPixMap(lhs*pixels(rhs))
 *(lhs::HEALPixMap,rhs::Number) = rhs*lhs
 
+function ==(lhs::HEALPixMap,rhs::HEALPixMap)
+    nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
+end
+
+function writehealpix(filename,map::HEALPixMap;
+                      coordsys::ASCIIString = "C",
+                      replace::Bool = false)
+    isdir(filename) && error("$filename is a directory")
+    if isfile(filename)
+        if replace
+            rm(filename)
+        else
+            error("$filename already exists")
+        end
+    end
+    # TODO: check return value
+    ccall(("write_healpix_map",libchealpix),Cint,
+          (Ptr{Cfloat},Clong,Ptr{Cchar},Cchar,Ptr{Cchar}),
+          pointer(Vector{Cfloat}(pixels(map))),
+          nside(map),pointer(filename),
+          isnest(map),pointer(coordsys))
+end
+
+function readhealpix(filename)
+    nside = Ref{Clong}()
+    coordsys = Ref{Cchar}()
+    ordering = Ref{Cchar}()
+    ptr = ccall(("read_healpix_map",libchealpix),Ptr{Cfloat},
+                (Ptr{Cchar},Ref{Clong},Ref{Cchar},Ref{Cchar}),
+                pointer(filename),nside,coordsys,ordering)
+    HEALPixMap(nside[],ordering[] == Cchar('R')? ring : nest,
+               pointer_to_array(ptr,nside2npix(nside[]),true))
+end
+
 ################################################################################
 # C++ wrapper methods
 
