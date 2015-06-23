@@ -19,6 +19,7 @@ export HEALPixMap, pixels, nside, npix, nring, isring, isnest
 export Alm, coefficients, lmax, mmax
 export npix2nside, nside2npix
 export map2alm, alm2map
+export writehealpix, readhealpix
 export mollweide
 
 import Base: length, getindex, setindex!, pointer

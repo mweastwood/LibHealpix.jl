@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 HEALPIXDIR=downloads/Healpix_3.20
 
@@ -7,19 +7,24 @@ cd $HEALPIXDIR
 mkdir -p include
 mkdir -p lib
 
-# (the configure script says something goes wrong at the end, but it seems to work anyway)
-./configure -L << EOF
+# patch the configure script to search the correct directory on Travis
+patch hpxconfig_functions.sh ../../hpxconfig_functions.patch
+
+bash ./configure -L << EOF
 2
 gcc
 -O2 -Wall
 ar -rsv
-n
+y
+
+
+
 y
 n
 0
 EOF
 
-./configure -L << EOF
+bash ./configure -L << EOF
 4
 
 
@@ -27,6 +32,9 @@ EOF
 n
 0
 EOF
+
+# patch the C Makefile to link libcfitsio into libchealpix
+patch src/C/subs/Makefile ../../src_C_subs_Makefile.patch
 
 make c-all
 make cpp-all
