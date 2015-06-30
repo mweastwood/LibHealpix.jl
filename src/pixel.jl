@@ -34,7 +34,7 @@ for T in (:Clong,:Clonglong)
         @eval function $f(nside::$T,ipix::$T)
             ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
             θptr = Array(Cdouble,1)
-            ϕptr   = Array(Cdouble,1)
+            ϕptr = Array(Cdouble,1)
             ccall(($(funcname(f)),libchealpix),Void,($T,$T,Ptr{Cdouble},Ptr{Cdouble}),nside,ipix,θptr,ϕptr)
             θptr[1],ϕptr[1]
         end
@@ -84,6 +84,6 @@ function vec2ang(vec::Vector{Cdouble})
     θptr[1],ϕptr[1]
 end
 
-npix2nside(nside) = npix2nside(Clong(nside))
+npix2nside(npix) = npix2nside(Clong(npix))
 nside2npix(nside) = nside2npix(Clong(nside))
 
