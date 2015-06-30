@@ -83,12 +83,17 @@ end
 
 function readhealpix(filename)
     nside = Ref{Clong}()
-    coordsys = Ref{Cchar}()
-    ordering = Ref{Cchar}()
+    # Make sure we're allocating enough space for
+    # these strings (so that they don't overwrite
+    # and corrupt Julia's memory, oops).
+    # All the credit goes to Yichao Yu for finding this.
+    # see: https://github.com/JuliaLang/julia/issues/11945
+    coordsys = zeros(UInt8,10)
+    ordering = zeros(UInt8,10)
     ptr = ccall(("read_healpix_map",libchealpix),Ptr{Cfloat},
-                (Ptr{Cchar},Ref{Clong},Ref{Cchar},Ref{Cchar}),
-                pointer(filename),nside,coordsys,ordering)
-    HEALPixMap(nside[],ordering[] == Cchar('R')? ring : nest,
+                (Ptr{Cchar},Ref{Clong},Ptr{UInt8},Ptr{UInt8}),
+                pointer(filename),nside,pointer(coordsys),pointer(ordering))
+    HEALPixMap(nside[],bytestring(ordering)[1:4] == "RING"? ring : nest,
                pointer_to_array(ptr,nside2npix(nside[]),true))
 end
 
