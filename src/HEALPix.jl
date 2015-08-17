@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+__precompile__()
+
 module HEALPix
 
 export HEALPixMap, pixels, nside, npix, nring, isring, isnest
@@ -22,10 +24,13 @@ export map2alm, alm2map
 export writehealpix, readhealpix
 export mollweide
 
-import Base: length, getindex, setindex!, pointer
+importall Base.Operators
+import Base: length, pointer
 
-const libchealpix = joinpath(dirname(@__FILE__),"../deps/downloads/Healpix_3.20/lib/libchealpix.so")
-const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
+function __init__()
+    global const libchealpix = joinpath(dirname(@__FILE__),"../deps/downloads/Healpix_3.20/lib/libchealpix.so")
+    global const libhealpixwrapper = joinpath(dirname(@__FILE__),"../deps/libhealpixwrapper.so")
+end
 
 const UNDEF = -1.6375e30 # Defined by the Healpix standard
 
