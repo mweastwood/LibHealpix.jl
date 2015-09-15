@@ -22,6 +22,10 @@ let nside = 512
     @test LibHealpix.ang2pix_nest(nside,θ,ϕ) == pix
     θ,ϕ = LibHealpix.pix2ang_ring(nside,pix)
     @test LibHealpix.ang2pix_ring(nside,θ,ϕ) == pix
+    vec = LibHealpix.pix2vec_nest(nside,pix)
+    @test LibHealpix.vec2pix_nest(nside,vec) == pix
+    vec = LibHealpix.pix2vec_ring(nside,pix)
+    @test LibHealpix.vec2pix_ring(nside,vec) == pix
 end
 
 let nside = 16
