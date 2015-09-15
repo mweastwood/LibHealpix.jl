@@ -1,34 +1,34 @@
-# HEALPix
+# LibHealpix
 
-[![Build Status](https://travis-ci.org/mweastwood/HEALPix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/HEALPix.jl)
-[![Coverage Status](https://coveralls.io/repos/mweastwood/HEALPix.jl/badge.svg?branch=master)](https://coveralls.io/r/mweastwood/HEALPix.jl?branch=master)
+[![Build Status](https://travis-ci.org/mweastwood/LibHealpix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/LibHealpix.jl)
+[![Coverage Status](https://img.shields.io/codecov/c/github/mweastwood/LibHealpix.jl.svg)](https://codecov.io/github/mweastwood/LibHealpix.jl)
 [![License](https://img.shields.io/badge/license-GPLv3%2B-blue.svg)](LICENSE.md)
 
-> HEALPix is an acronym for Hierarchical Equal Area isoLatitude Pixelization of a sphere.
+> Healpix is an acronym for Hierarchical Equal Area isoLatitude Pixelization of a sphere.
 > As suggested in the name, this pixelization produces a subdivision of a spherical
 > surface in which each pixel covers the same surface area as every other pixel.
 
-![A HEALPixMap in Mollweide projection](example.png)
+![A HealpixMap in Mollweide projection](example.png)
 
 ## Getting Started
 
-To get started using HEALPix, run:
+To get started using LibHealpix, run:
 ```julia
-Pkg.add("HEALPix")
-Pkg.build("HEALPix")
-Pkg.test("HEALPix")
-using HEALPix
+Pkg.add("LibHealpix")
+Pkg.build("LibHealpix")
+Pkg.test("LibHealpix")
+using LibHealpix
 ```
 
-The build process will attempt to download and build the [HEALPix](http://healpix.jpl.nasa.gov/) library.
+The build process will attempt to download and build the [Healpix](http://healpix.jpl.nasa.gov/) library.
 
 ## Examples
 
 ### Creating a Map
 ```julia
-using HEALPix
+using LibHealpix
 nside = 16
-map = HEALPixMap(Float64,nside)
+map = HealpixMap(Float64,nside)
 for i = 1:length(map)
     map[i] = i
 end
@@ -36,7 +36,7 @@ end
 
 ### Spherical Harmonic Transforms
 ```julia
-using HEALPix
+using LibHealpix
 lmax = mmax = 10
 alm = Alm(Complex128,lmax,mmax)
 for m = 0:mmax, l = m:lmax
@@ -48,16 +48,16 @@ blm = map2alm(map,lmax=20,mmax=20)
 
 ### FITS I/O
 ```julia
-using HEALPix
+using LibHealpix
 map = readhealpix("map.fits")
 writehealpix("othermap.fits",map)
 ```
 
 ### Visualization
 ```julia
-using HEALPix
+using LibHealpix
 using PyPlot # for imshow(...)
-map = HEALPixMap(Float64,nside)
+map = HealpixMap(Float64,nside)
 for i = 1:length(map)
     map[i] = rand()
 end
@@ -66,6 +66,6 @@ imshow(img)
 ```
 
 ## Development
-This package is very much a work in progress. Only a small part of the HEALPix library is currently wrapped.
+This package is very much a work in progress. Only a small part of the Healpix library is currently wrapped.
 Please open issues or pull requests for missing functionality.
 

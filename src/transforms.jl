@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function map2alm(map::HEALPixMap;lmax::Int=100,mmax::Int=100)
-    isring(map) || error("The input HEALPixMap must have ring ordering.")
+function map2alm(map::HealpixMap;lmax::Int=100,mmax::Int=100)
+    isring(map) || error("The input HealpixMap must have ring ordering.")
     nalm = num_alm(lmax,mmax)
     map_cxx = map |> to_cxx
     alm_cxx = Alm(lmax,mmax,zeros(Complex128,nalm)) |> to_cxx
@@ -27,7 +27,7 @@ end
 function alm2map(alm::Alm;nside::Int=32)
     npix = nside2npix(nside)
     alm_cxx = alm |> to_cxx
-    map_cxx = HEALPixMap(zeros(Cdouble,npix)) |> to_cxx
+    map_cxx = HealpixMap(zeros(Cdouble,npix)) |> to_cxx
     ccall(("alm2map",libhealpixwrapper),Void,
           (Ptr{Void},Ptr{Void}),
           pointer(alm_cxx),pointer(map_cxx))

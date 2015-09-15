@@ -20,7 +20,7 @@ extern "C" {
     Healpix_Map<double>* newMap(double* vec_map, size_t nside)
     {
         size_t npix = 12*nside*nside;
-        // Pack the pixel values into HEALPix's arr container
+        // Pack the pixel values into Healpix's arr container
         arr<double> arr_map(npix);
         for (uint i = 0; i < npix; ++i)
             arr_map[i] = vec_map[i];

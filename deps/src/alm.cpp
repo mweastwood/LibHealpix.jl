@@ -26,7 +26,7 @@ extern "C" {
     Alm<xcomplex<double> >* newAlm(complex<double>* vec_alm, size_t lmax, size_t mmax)
     {
         size_t nalm = num_alm(lmax,mmax);
-        // Pack the alms into HEALPix's arr container
+        // Pack the alms into Healpix's arr container
         arr<xcomplex<double> > arr_alm(num_alm(lmax,mmax));
         for (uint i = 0; i < nalm; ++i)
             arr_alm[i] = xcomplex<double>(vec_alm[i]);

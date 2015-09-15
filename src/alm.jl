@@ -13,21 +13,46 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-type Alm{T<:Complex,lmax,mmax}
+"""
+    Alm{T<:Complex,lmax,mmax}
+
+This type holds a vector of spherical harmonic coefficients.
+
+Construction of this type will throw a `DomainError` exception if `mmax > lmax`.
+A `DimensionMismatch` exception will be thrown if the provided
+list of coefficients is not the correct length.
+"""
+immutable Alm{T<:Complex,lmax,mmax}
     alm::Vector{T}
     function Alm(vec)
-        if length(vec) != num_alm(lmax,mmax)
-            error("Alm with lmax=$lmax and mmax=$mmax must have length $(num_alm(lmax,mmax)).")
-        end
+        lmax ≥ mmax || throw(DomainError())
+        N = num_alm(lmax,mmax)
+        N == length(vec) || throw(DimensionMismatch("Expected $N coefficients with lmax=$lmax and mmax=$mmax."))
         new(vec)
     end
 end
 
+"""
+    Alm(lmax,mmax,coefficients)
+
+Construct an `Alm` object with the given list of coefficients.
+"""
 Alm{T}(lmax::Int,mmax::Int,vec::Vector{T}) = Alm{T,lmax,mmax}(vec)
+"""
+    Alm(T,lmax,mmax)
+
+Construct an `Alm` object where all the coefficients are initialized to `zero(T)`.
+"""
 Alm{T}(::Type{T},lmax::Int,mmax::Int) = Alm{T,lmax,mmax}(zeros(T,num_alm(lmax,mmax)))
 
+"""
+    num_alm(lmax,mmax)
+
+Compute the number of spherical harmonic coefficients with `l ≤ lmax`
+and `m ≤ mmax`.
+"""
 function num_alm(lmax::Csize_t,mmax::Csize_t)
-    mmax > lmax && error("must have mmax ≤ lmax")
+    lmax ≥ mmax || throw(DomainError())
     ccall(("num_alm",libhealpixwrapper),Csize_t,
           (Csize_t,Csize_t),lmax,mmax)
 end
