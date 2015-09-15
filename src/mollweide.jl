@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function mollweide(map::HEALPixMap)
+function mollweide(map::HealpixMap)
     N = 2nring(map)
     img = zeros(2N,N)
     δ = 2/N

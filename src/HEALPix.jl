@@ -15,9 +15,9 @@
 
 __precompile__()
 
-module HEALPix
+module LibHealpix
 
-export HEALPixMap, pixels, nside, npix, nring, isring, isnest
+export HealpixMap, pixels, nside, npix, nring, isring, isnest
 export Alm, coefficients, lmax, mmax
 export npix2nside, nside2npix
 export map2alm, alm2map
