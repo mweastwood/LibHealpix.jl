@@ -7,7 +7,7 @@ before_install:
     - sudo apt-get install libcfitsio3-dev -y
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"HEALPix\"); Pkg.test(\"HEALPix\"; coverage=true)"
+    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"LibHealpix\"); Pkg.test(\"LibHealpix\"; coverage=true)"
 after_success:
     - julia -e "cd(Pkg.dir(\"LibHealpix\")); Pkg.add(\"Coverage\"); using Coverage; Codecov.submit(process_folder())"
 
