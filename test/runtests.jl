@@ -12,8 +12,16 @@ end
 for θ in [0.5:0.5:3.0;], ϕ in [0.0:1.0:6.0;]
     vec = LibHealpix.ang2vec(θ,ϕ)
     θ′,ϕ′ = LibHealpix.vec2ang(vec)
-    @test_approx_eq θ θ′
-    @test_approx_eq ϕ ϕ′
+    @test θ ≈ θ′
+    @test ϕ ≈ ϕ′
+end
+
+let nside = 512
+    pix = 123
+    θ,ϕ = LibHealpix.pix2ang_nest(nside,pix)
+    @test LibHealpix.ang2pix_nest(nside,θ,ϕ) == pix
+    θ,ϕ = LibHealpix.pix2ang_ring(nside,pix)
+    @test LibHealpix.ang2pix_ring(nside,θ,ϕ) == pix
 end
 
 let nside = 16
