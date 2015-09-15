@@ -54,3 +54,23 @@ let nside = 16
     @test map == newmap
 end
 
+# Test the Mollweide projection
+let nside = 5
+    map = HealpixMap(Float64,nside)
+    for i = 1:length(map)
+        map[i] = 1.0
+    end
+    img = mollweide(map)'
+    # Verify that the image is unity inside and zero outside
+    N = size(img,2)
+    x = linspace(-2+1/N,2-1/N,2N)
+    y = linspace(-1+1/N,1-1/N,1N)
+    for j = 1:N, i = 1:2N
+        if x[i]^2 + 4y[j]^2 > 4
+            @test img[i,j] == 0
+        else
+            @test img[i,j] == 1
+        end
+    end
+end
+

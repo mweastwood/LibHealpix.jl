@@ -13,6 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    mollweide(map::HEALPixMap)
+
+Create an image of the map through the use of a Mollweide projection.
+The image will be zero in the region outside of the projection area.
+"""
 function mollweide(map::HealpixMap)
     N = 2nring(map)
     img = zeros(2N,N)
