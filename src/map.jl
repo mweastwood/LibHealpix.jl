@@ -15,24 +15,55 @@
 
 @enum Order ring nest
 
+"""
+    HealpixMap{T<:FloatingPoint,nside,order}
+
+This type holds a list of pixel values. Each pixel corresponds to an
+equal-area region on the surface of a sphere as is defined by the
+Healpix projection.
+
+Construction of this type will throw a `DimensionMismatch` exception
+if the incorrect number of pixels are provided for the given value
+of `nside`. Use the function `nside2npix` to compute the appropriate
+number of pixels.
+
+The type parameter `order` must be one of either `LibHealpix.ring`
+or `LibHealpix.nest`. This defines whether pixels should be ordered
+by equal latitude rings (useful for spherical harmonic transforms)
+or by a nested scheme where adjacent pixels are likely to be nearby
+in memory.
+"""
 type HealpixMap{T<:FloatingPoint,nside,order}
     pixels::Vector{T}
     function HealpixMap(vec)
-        if npix2nside(length(vec)) != nside
-            error("HealpixMap with nside=$nside must have length $(nside2npix(nside)).")
-        end
+        N = nside2npix(nside)
+        N == length(vec) || throw(DimensionMismatch("Expected $N pixels with nside=$nside."))
         new(vec)
     end
 end
 
+"""
+    HealpixMap(nside,order,pixels)
+
+Construct a `HealpixMap` with the given list of pixel values.
+"""
 HealpixMap{T}(nside::Int,order::Order,vec::Vector{T}) = HealpixMap{T,nside,order}(vec)
+"""
+    HealpixMap(T,nside,order=LibHealpix.ring)
+
+Construct a `HealpixMap` where all the coefficients are initialized to `zero(T)`.
+"""
 HealpixMap{T}(::Type{T},nside::Int,order::Order=ring) = HealpixMap{T,nside,order}(zeros(T,nside2npix(nside)))
 
+"""
+    HealpixMap(pixels;order=LibHealpix.ring)
+
+Construct a `HealpixMap` with the given list of pixel values.
+The value of `nside` is inferred from the number of pixels.
+"""
 function HealpixMap{T}(vec::Vector{T};order::Order=ring)
     nside = npix2nside(length(vec))
-    if nside == -1
-        error("The supplied vector does not have a valid length.")
-    end
+    nside < 0 && throw(DimensionMismatch("The supplied list of pixels does not have a valid length."))
     HealpixMap(nside,order,vec)
 end
 
@@ -62,6 +93,15 @@ function ==(lhs::HealpixMap,rhs::HealpixMap)
     nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
 end
 
+"""
+    writehealpix(filename,map::HealpixMap;coordsys="C",replace=false)
+
+Write the `HealpixMap` to disk as a FITS image. If the file already exists,
+an `ErrorException` is thrown, but this behavior may be overwritten
+by specifying `replace=true`. The `coordsys` keyword specifies the
+coordinate system of the given `HealpixMap`, but this is currently
+not retrieved by the corresponding `readhealpix` function.
+"""
 function writehealpix(filename,map::HealpixMap;
                       coordsys::ASCIIString = "C",
                       replace::Bool = false)
@@ -81,6 +121,11 @@ function writehealpix(filename,map::HealpixMap;
           isnest(map),pointer(coordsys))
 end
 
+"""
+    readhealpix(filename) -> HealpixMap
+
+Read a `HealpixMap` (stored as a FITS image) from disk.
+"""
 function readhealpix(filename)
     nside = Ref{Clong}()
     # Make sure we're allocating enough space for

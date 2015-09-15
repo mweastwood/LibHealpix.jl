@@ -17,6 +17,7 @@
     Alm{T<:Complex,lmax,mmax}
 
 This type holds a vector of spherical harmonic coefficients.
+
 Construction of this type will throw a `DomainError` exception if `mmax > lmax`.
 A `DimensionMismatch` exception will be thrown if the provided
 list of coefficients is not the correct length.
@@ -34,7 +35,7 @@ end
 """
     Alm(lmax,mmax,coefficients)
 
-Construct an `Alm` object with the list of coefficients contained in `vec`.
+Construct an `Alm` object with the given list of coefficients.
 """
 Alm{T}(lmax::Int,mmax::Int,vec::Vector{T}) = Alm{T,lmax,mmax}(vec)
 """
