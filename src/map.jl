@@ -16,7 +16,7 @@
 @enum Order ring nest
 
 """
-    HealpixMap{T<:FloatingPoint,nside,order}
+    HealpixMap{T<:AbstractFloat,nside,order}
 
 This type holds a list of pixel values. Each pixel corresponds to an
 equal-area region on the surface of a sphere as is defined by the
@@ -33,7 +33,7 @@ by equal latitude rings (useful for spherical harmonic transforms)
 or by a nested scheme where adjacent pixels are likely to be nearby
 in memory.
 """
-type HealpixMap{T<:FloatingPoint,nside,order}
+type HealpixMap{T<:AbstractFloat,nside,order}
     pixels::Vector{T}
     function HealpixMap(vec)
         N = nside2npix(nside)
