@@ -22,7 +22,7 @@ extern "C" {
         size_t npix = 12*nside*nside;
         // Pack the pixel values into Healpix's arr container
         arr<double> arr_map(npix);
-        for (uint i = 0; i < npix; ++i)
+        for (size_t i = 0; i < npix; ++i)
             arr_map[i] = vec_map[i];
         // Create the Healpix_Map container
         Healpix_Map<double>* map = new Healpix_Map<double>(arr_map,RING);
