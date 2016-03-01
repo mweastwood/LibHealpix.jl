@@ -22,6 +22,9 @@ using LibHealpix
 
 The build process will attempt to download and build the [Healpix](http://healpix.jpl.nasa.gov/) library.
 
+###### Issues of building in OSX
+In OSX, by default, `gcc` and `g++` are linked to *Clang*, which does not supported some of the flags used to build the [Healpix](http://healpix.jpl.nasa.gov/) library and wrappers in this package. A quick fix could be to link `gcc` and `g++` to *GNU gcc/g++*.
+
 ## Examples
 
 ### Creating a Map
@@ -68,4 +71,3 @@ imshow(img)
 ## Development
 This package is very much a work in progress. Only a small part of the Healpix library is currently wrapped.
 Please open issues or pull requests for missing functionality.
-
