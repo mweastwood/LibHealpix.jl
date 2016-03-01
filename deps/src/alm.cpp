@@ -28,7 +28,7 @@ extern "C" {
         size_t nalm = num_alm(lmax,mmax);
         // Pack the alms into Healpix's arr container
         arr<xcomplex<double> > arr_alm(num_alm(lmax,mmax));
-        for (uint i = 0; i < nalm; ++i)
+        for (size_t i = 0; i < nalm; ++i)
             arr_alm[i] = xcomplex<double>(vec_alm[i]);
         // Create the Alm container
         Alm<xcomplex<double> >* alm = new Alm<xcomplex<double> >(lmax,mmax);
@@ -39,7 +39,7 @@ extern "C" {
     void alm2julia(Alm<xcomplex<double> >* alm, complex<double>* output)
     {
         arr<xcomplex<double> > arr_alm = alm->Alms();
-        for (uint i = 0; i < arr_alm.size(); ++i)
+        for (size_t i = 0; i < arr_alm.size(); ++i)
             output[i] = arr_alm[i];
     }
     int lmax(Alm<xcomplex<double> >* alm) {return alm->Lmax();}
