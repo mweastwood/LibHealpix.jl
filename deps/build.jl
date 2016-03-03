@@ -1,45 +1,42 @@
-using BinDeps
-@BinDeps.setup
+# First build the Healpix library
 
-chealpix       = library_dependency("libchealpix",       runtime = true)
-healpix_cxx    = library_dependency("libhealpix_cxx",    runtime = false)
-healpixwrapper = library_dependency("libhealpixwrapper", runtime = true, depends = [healpix_cxx])
+@linux_only begin
+    has_apt = try success(`apt-get -v`) catch exception false end
+    if has_apt
+        println("Running `sudo apt-get install libchealpix-dev`")
+        run(`sudo apt-get install libchealpix-dev`)
+        println("Running `sudo apt-get install libhealpix-cxx-dev`")
+        run(`sudo apt-get install libhealpix-cxx-dev`)
+    else
+        println("Manually downloading and building the Healpix library")
+        depsdir = dirname(@__FILE__)
+        version = "3.30"
+        date = "2015Oct08"
+        tar = "Healpix_$(version)_$date.tar.gz"
+        url = "http://downloads.sourceforge.net/project/healpix/Healpix_$version/$tar"
+        dir = joinpath(depsdir, "downloads")
+        run(`mkdir -p $dir`)
+        run(`curl -o $(joinpath(dir, tar)) -L $url`)
+        run(`tar -xzf $(joinpath(dir, tar)) -C $dir`)
+        run(`./build_healpix.sh`)
+    end
+end
 
 @osx_only begin
     if Pkg.installed("Homebrew") === nothing
         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
     end
     using Homebrew
-    #provides(Homebrew.HB, "cfitsio", cfitsio, os = :Darwin)
+    println("Installing healpix from the Homebrew/science tap")
+    Homebrew.add("homebrew/science/healpix")
 end
 
-provides(AptGet, Dict("libchealpix-dev" => chealpix,
-                      "libhealpix-cxx-dev" => healpix_cxx))
+# Then build the wrapper
 
-# Linux build from source
-
-@BinDeps.install Dict(:chealpix => :libchealpix, :healpixwrapper => :libhealpixwrapper)
-
-
-#=
-depsdir = dirname(@__FILE__)
-
-# Download the HEALPix source
-println("Downloading the HEALPix source...")
-version = "3.20"
-gz = "Healpix_$(version)_2014Dec05.tar.gz"
-url = "http://downloads.sourceforge.net/project/healpix/Healpix_$version/$gz"
-dir = joinpath(depsdir,"downloads")
-
-run(`mkdir -p $dir`)
-run(`curl -o $(joinpath(dir,gz)) -L $url`)
-run(`tar -xzf $(joinpath(dir,gz)) -C $dir`)
-run(`./build_healpix.sh`)
-
-# Build the HEALPix wrapper
 println("Building the HEALPix wrapper...")
-dir = joinpath(depsdir,"src")
+# TODO: make this use autotools or something
+depsdir = dirname(@__FILE__)
+dir = joinpath(depsdir, "src")
 run(`make -C $dir`)
 run(`make -C $dir install`)
-=#
 
