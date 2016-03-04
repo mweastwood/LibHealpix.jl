@@ -1,8 +1,18 @@
 # First build the Healpix library
 
 @linux_only begin
-    has_apt = try success(`apt-get -v`) catch exception false end
-    if has_apt
+    apt = try
+        success(`apt-get -v`)
+        # ok we have apt, but do the healpix packages exist?
+        pkg1 = readall(`apt-cache showpkg libchealpix-dev`)
+        @show pkg1
+        pkg2 = readall(`apt-cache showpkg libhealpix-cxx-dev`)
+        @show pkg2
+    catch exception
+        false
+    end
+
+    if apt
         println("Running `sudo apt-get install libchealpix-dev`")
         run(`sudo apt-get install libchealpix-dev`)
         println("Running `sudo apt-get install libhealpix-cxx-dev`")
