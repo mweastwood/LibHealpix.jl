@@ -4,7 +4,15 @@ HEALPIX = ../downloads/Healpix_3.30
 INCLUDES = -I$(HEALPIX)/src/cxx/Healpix_cxx -I$(HEALPIX)/src/cxx/cxxsupport
 LIBRARIES = -L$(HEALPIX)/lib -L$(HEALPIX)/src/cxx/gcc_with_fpic/lib -lhealpix_cxx -lcxxsupport -lsharp -lc_utils -lfftpack
 
-all: libhealpixwrapper.so
+UNAME := $(shell uname)
+ifeq ($(UNAME), Linux)
+SHARED_LIBRARY = libhealpixwrapper.so
+endif
+ifeq ($(UNAME), Darwin)
+SHARED_LIBRARY = libhealpixwrapper.dylib
+endif
+
+all: $(SHARED_LIBRARY)
 
 map.o: map.cpp
 	$(CXX) $(CXXFLAGS) map.cpp $(INCLUDES)
@@ -15,14 +23,14 @@ alm.o: alm.cpp
 transforms.o: transforms.cpp
 	$(CXX) $(CXXFLAGS) transforms.cpp $(INCLUDES)
 
-libhealpixwrapper.so: map.o alm.o transforms.o
-	$(CXX) -shared -o libhealpixwrapper.so map.o alm.o transforms.o $(LIBRARIES)
+$(SHARED_LIBRARY): map.o alm.o transforms.o
+	$(CXX) -shared -o $(SHARED_LIBRARY) map.o alm.o transforms.o $(LIBRARIES)
 
 clean:
 	-rm *.o
-	-rm *.so
+	-rm $(SHARED_LIBRARY)
 
 install:
 	@mkdir -p ../usr/lib
-	@cp libhealpixwrapper.so ../usr/lib
+	@cp $(SHARED_LIBRARY) ../usr/lib
 

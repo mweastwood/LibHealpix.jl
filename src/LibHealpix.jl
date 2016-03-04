@@ -29,7 +29,7 @@ import Base: length, pointer
 
 function __init__()
     global const libchealpix = joinpath(dirname(@__FILE__), "../deps/usr/lib/libchealpix")
-    global const libhealpixwrapper = joinpath(dirname(@__FILE__), "../deps/usr/lib/libhealpixwrapper.so")
+    global const libhealpixwrapper = joinpath(dirname(@__FILE__), "../deps/usr/lib/libhealpixwrapper")
 end
 
 const UNDEF = -1.6375e30 # Defined by the Healpix standard
