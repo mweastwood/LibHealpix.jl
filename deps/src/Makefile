@@ -1,7 +1,6 @@
-CXX = g++
 CXXFLAGS = -c -Wall -Werror -fpic -Wno-unknown-pragmas
 
-HEALPIX = ../downloads/Healpix_3.20
+HEALPIX = ../downloads/Healpix_3.30
 INCLUDES = -I$(HEALPIX)/src/cxx/Healpix_cxx -I$(HEALPIX)/src/cxx/cxxsupport
 LIBRARIES = -L$(HEALPIX)/lib -L$(HEALPIX)/src/cxx/gcc_with_fpic/lib -lhealpix_cxx -lcxxsupport -lsharp -lc_utils -lfftpack
 

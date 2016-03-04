@@ -1,13 +1,15 @@
+using Compat
+
 # First build the Healpix library
 
 @linux_only begin
     apt = try
         success(`apt-get -v`)
         # ok we have apt, but do the healpix packages exist?
-        pkg1 = readall(`apt-cache showpkg libchealpix-dev`)
-        @show pkg1
-        pkg2 = readall(`apt-cache showpkg libhealpix-cxx-dev`)
-        @show pkg2
+        search_for_libchealpix    = readstring(`apt-cache showpkg libchealpix-dev`)
+        search_for_libhealpix_cxx = readstring(`apt-cache showpkg libhealpix-cxx-dev`)
+        # the following test is brittle a more thorough test of the output should be added
+        !isempty(search_for_libchealpix) && !isempty(search_for_libhealpix_cxx)
     catch exception
         false
     end
