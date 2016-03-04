@@ -38,4 +38,5 @@ patch src/C/subs/Makefile ../../patches/src_C_subs_Makefile.patch
 
 make c-all
 make cpp-all
+cp lib/* ../../usr/lib
 

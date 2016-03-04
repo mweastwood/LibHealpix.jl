@@ -23,5 +23,5 @@ clean:
 	-rm *.so
 
 install:
-	cp libhealpixwrapper.so ..
+	cp libhealpixwrapper.so ../usr/lib
 

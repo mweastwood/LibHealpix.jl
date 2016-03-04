@@ -1,6 +1,5 @@
-using Compat
-
 module Apt
+    using Compat # for readstring
     can_use() = try success(`apt-get -v`) catch exception false end
     find(pkg) = startswith(readstring(`apt-cache showpkg $pkg`), "Package: $pkg")
     function install(pkg)
@@ -42,16 +41,11 @@ end
             manually_build_healpix()
         end
     else
-        maually_build_healpix()
+        manually_build_healpix()
     end
 end
 
 @osx_only begin
-    if Pkg.installed("Homebrew") === nothing
-        error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
-    end
-    using Homebrew
-    println("Installing healpix from the Homebrew/science tap")
     Homebrew.add("homebrew/science/healpix")
 end
 
