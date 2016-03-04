@@ -1,36 +1,48 @@
 using Compat
 
-# First build the Healpix library
+module Apt
+    can_use() = try success(`apt-get -v`) catch exception false end
+    find(pkg) = startswith(readstring(`apt-cache showpkg $pkg`), "Package: $pkg")
+    function install(pkg)
+        println("Running `sudo apt-get install $pkg`)")
+        run(`sudo apt-get install $pkg`)
+    end
+end
+
+@osx_only begin
+    if Pkg.installed("Homebrew") === nothing
+        error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+    end
+    import Homebrew
+end
+
+# First install the dependencies
+
+function manually_build_healpix()
+    println("Manually downloading and building the Healpix library")
+    depsdir = dirname(@__FILE__)
+    version = "3.30"
+    date = "2015Oct08"
+    tar = "Healpix_$(version)_$date.tar.gz"
+    url = "http://downloads.sourceforge.net/project/healpix/Healpix_$version/$tar"
+    dir = joinpath(depsdir, "downloads")
+    run(`mkdir -p $dir`)
+    run(`curl -o $(joinpath(dir, tar)) -L $url`)
+    run(`tar -xzf $(joinpath(dir, tar)) -C $dir`)
+    run(`./build_healpix.sh`)
+end
 
 @linux_only begin
-    apt = try
-        success(`apt-get -v`)
-        # ok we have apt, but do the healpix packages exist?
-        search_for_libchealpix    = readstring(`apt-cache showpkg libchealpix-dev`)
-        search_for_libhealpix_cxx = readstring(`apt-cache showpkg libhealpix-cxx-dev`)
-        # the following test is brittle a more thorough test of the output should be added
-        !isempty(search_for_libchealpix) && !isempty(search_for_libhealpix_cxx)
-    catch exception
-        false
-    end
-
-    if apt
-        println("Running `sudo apt-get install libchealpix-dev`")
-        run(`sudo apt-get install libchealpix-dev`)
-        println("Running `sudo apt-get install libhealpix-cxx-dev`")
-        run(`sudo apt-get install libhealpix-cxx-dev`)
+    if Apt.can_use()
+        Apt.find("libcfitsio3-dev") && Apt.install("libcfitsio3-dev")
+        if Apt.find("libchealpix-dev") && Apt.find("libhealpix-cxx-dev")
+            Apt.install("libchealpix-dev")
+            Apt.install("libchealpix-dev")
+        else
+            manually_build_healpix()
+        end
     else
-        println("Manually downloading and building the Healpix library")
-        depsdir = dirname(@__FILE__)
-        version = "3.30"
-        date = "2015Oct08"
-        tar = "Healpix_$(version)_$date.tar.gz"
-        url = "http://downloads.sourceforge.net/project/healpix/Healpix_$version/$tar"
-        dir = joinpath(depsdir, "downloads")
-        run(`mkdir -p $dir`)
-        run(`curl -o $(joinpath(dir, tar)) -L $url`)
-        run(`tar -xzf $(joinpath(dir, tar)) -C $dir`)
-        run(`./build_healpix.sh`)
+        maually_build_healpix()
     end
 end
 
