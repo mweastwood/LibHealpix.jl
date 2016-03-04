@@ -7,8 +7,6 @@ julia:
     - nightly
 notifications:
     email: false
-before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then julia -e 'Pkg.add("Homebrew")'; fi
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia -e 'Pkg.clone(pwd()); Pkg.build("LibHealpix")'

@@ -3,22 +3,23 @@ module Apt
     can_use() = try success(`apt-get -v`) catch exception false end
     find(pkg) = startswith(readstring(`apt-cache showpkg $pkg`), "Package: $pkg")
     function install(pkg)
-        println("Running `sudo apt-get install $pkg`)")
+        info("Running `sudo apt-get install $pkg`)")
         run(`sudo apt-get install $pkg`)
     end
 end
 
-@osx_only begin
-    if Pkg.installed("Homebrew") === nothing
-        error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+module Homebrew
+    can_use() = try success(`brew -v`) catch exception false end
+    function install(pkg)
+        info("Running `brew install $pkg`")
+        run(`brew install $pkg`)
     end
-    import Homebrew
 end
 
 # First install the dependencies
 
 function manually_build_healpix()
-    println("Manually downloading and building the Healpix library")
+    info("Manually downloading and building the Healpix library")
     depsdir = dirname(@__FILE__)
     version = "3.30"
     date = "2015Oct08"
@@ -46,12 +47,17 @@ end
 end
 
 @osx_only begin
-    Homebrew.add("homebrew/science/healpix")
+    if Homebrew.can_use()
+        Homebrew.install("cfitsio")
+        manually_build_healpix()
+    else
+        manually_build_healpix()
+    end
 end
 
 # Then build the wrapper
 
-println("Building the HEALPix wrapper...")
+info("Building the HEALPix wrapper")
 # TODO: make this use autotools or something
 depsdir = dirname(@__FILE__)
 dir = joinpath(depsdir, "src")
