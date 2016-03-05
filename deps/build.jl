@@ -38,27 +38,21 @@ end
         if Apt.find("libchealpix-dev") && Apt.find("libhealpix-cxx-dev")
             Apt.install("libchealpix-dev")
             Apt.install("libchealpix-dev")
-        else
-            manually_build_healpix()
         end
-    else
-        manually_build_healpix()
     end
+    manually_build_healpix()
 end
 
 @osx_only begin
     if Homebrew.can_use()
         Homebrew.install("cfitsio")
-        manually_build_healpix()
-    else
-        manually_build_healpix()
     end
+    manually_build_healpix()
 end
 
 # Then build the wrapper
 
 info("Building the HEALPix wrapper")
-# TODO: make this use autotools or something
 depsdir = dirname(@__FILE__)
 dir = joinpath(depsdir, "src")
 run(`make -C $dir`)
