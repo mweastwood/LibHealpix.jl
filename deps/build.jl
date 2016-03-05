@@ -38,9 +38,12 @@ end
         if Apt.find("libchealpix-dev") && Apt.find("libhealpix-cxx-dev")
             Apt.install("libchealpix-dev")
             Apt.install("libchealpix-dev")
+        else
+            manually_build_healpix()
         end
+    else
+        manually_build_healpix()
     end
-    manually_build_healpix()
 end
 
 @osx_only begin
