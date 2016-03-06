@@ -28,8 +28,9 @@ importall Base.Operators
 import Base: length, pointer
 
 function __init__()
-    global const libchealpix = joinpath(dirname(@__FILE__), "../deps/usr/lib/libchealpix")
-    global const libhealpixwrapper = joinpath(dirname(@__FILE__), "../deps/usr/lib/libhealpixwrapper")
+    usr_lib = joinpath(dirname(@__FILE__), "../deps/usr/lib")
+    global const libchealpix = joinpath(usr_lib, "libchealpix")
+    global const libhealpixwrapper = joinpath(usr_lib, "libhealpixwrapper")
 end
 
 const UNDEF = -1.6375e30 # Defined by the Healpix standard
