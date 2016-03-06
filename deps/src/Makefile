@@ -9,9 +9,17 @@ ifeq ($(UNAME), Darwin)
 SHARED_LIBRARY = libhealpixwrapper.dylib
 endif
 
-MY_PKG_CONFIG_PATH := $(PWD)/../usr/lib/pkgconfig:$(PKG_CONFIG_PATH)
-PKG_CONFIG_CFLAGS := $(shell PKG_CONFIG_PATH=$(MY_PKG_CONFIG_PATH) pkg-config --cflags chealpix healpix_cxx)
-PKG_CONFIG_LIBS   := $(shell PKG_CONFIG_PATH=$(MY_PKG_CONFIG_PATH) pkg-config --libs   chealpix healpix_cxx)
+# NOTE: $(PWD) does not always give the location of the Makefile.
+# In particular, if you run `make -C ...` $(PWD) appears to give
+# the directory from which you ran that command. Instead of the
+# directory specified as the argument to `-C`.
+#
+# http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
+
+ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+MY_PKG_CONFIG_PATH := $(ROOT_DIR)/../usr/lib/pkgconfig:$(PKG_CONFIG_PATH)
+PKG_CONFIG_CFLAGS  := $(shell PKG_CONFIG_PATH=$(MY_PKG_CONFIG_PATH) pkg-config --cflags chealpix healpix_cxx)
+PKG_CONFIG_LIBS    := $(shell PKG_CONFIG_PATH=$(MY_PKG_CONFIG_PATH) pkg-config --libs   chealpix healpix_cxx)
 
 all: $(SHARED_LIBRARY)
 
