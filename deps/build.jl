@@ -37,7 +37,7 @@ end
         Apt.find("libcfitsio3-dev") && Apt.install("libcfitsio3-dev")
         if Apt.find("libchealpix-dev") && Apt.find("libhealpix-cxx-dev")
             Apt.install("libchealpix-dev")
-            Apt.install("libchealpix-dev")
+            Apt.install("libhealpix-cxx-dev")
         else
             manually_build_healpix()
         end
