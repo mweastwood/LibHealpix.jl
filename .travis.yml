@@ -7,15 +7,10 @@ julia:
     - nightly
 notifications:
     email: false
-before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libcfitsio3-dev -y; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cfitsio; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ln -s /usr/local/bin/gcc-4.9 /usr/local/bin/gcc; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ln -s /usr/local/bin/g++-4.9 /usr/local/bin/g++; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/bin:$PATH; fi
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"LibHealpix\"); Pkg.test(\"LibHealpix\"; coverage=true)"
+    - julia -e 'Pkg.clone(pwd()); Pkg.build("LibHealpix")'
+    - julia --check-bounds=yes -e 'Pkg.test("LibHealpix"; coverage=true)'
 after_success:
-    - julia -e "cd(Pkg.dir(\"LibHealpix\")); Pkg.add(\"Coverage\"); using Coverage; Codecov.submit(process_folder())"
+    - julia -e 'cd(Pkg.dir("LibHealpix")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
