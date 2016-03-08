@@ -163,8 +163,8 @@ end
 function to_cxx(map::HealpixMap)
     N = nside(map)
     map_cxx = HealpixMap_cxx(ccall(("newMap",libhealpixwrapper),Ptr{Void},
-                                   (Ptr{Complex128},Csize_t),
-                                   pointer(pixels(map)),Csize_t(N)))
+                                   (Ptr{Cdouble},Csize_t),
+                                   pixels(map),Csize_t(N)))
     finalizer(map_cxx,delete)
     map_cxx
 end
