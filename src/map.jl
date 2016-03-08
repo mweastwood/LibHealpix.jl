@@ -16,7 +16,7 @@
 @enum Order ring nest
 
 """
-    HealpixMap{T<:AbstractFloat,nside,order}
+    HealpixMap{T<:AbstractFloat, nside, order}
 
 This type holds a list of pixel values. Each pixel corresponds to an
 equal-area region on the surface of a sphere as is defined by the
@@ -32,9 +32,22 @@ or `LibHealpix.nest`. This defines whether pixels should be ordered
 by equal latitude rings (useful for spherical harmonic transforms)
 or by a nested scheme where adjacent pixels are likely to be nearby
 in memory.
+
+    HealpixMap(nside, order, pixels)
+
+Construct a `HealpixMap` with the given list of pixel values.
+
+    HealpixMap(T, nside, order=LibHealpix.ring)
+
+Construct a `HealpixMap` where all the coefficients are initialized to `zero(T)`.
+
+    HealpixMap(pixels, order=LibHealpix.ring)
+
+Construct a `HealpixMap` with the given list of pixel values.
+The value of `nside` is inferred from the number of pixels.
 """
-type HealpixMap{T<:AbstractFloat,nside,order}
-    pixels::Vector{T}
+immutable HealpixMap{T<:AbstractFloat, nside, order}
+    pixels :: Vector{T}
     function HealpixMap(vec)
         N = nside2npix(nside)
         N == length(vec) || throw(DimensionMismatch("Expected $N pixels with nside=$nside."))
@@ -42,59 +55,46 @@ type HealpixMap{T<:AbstractFloat,nside,order}
     end
 end
 
-"""
-    HealpixMap(nside,order,pixels)
+HealpixMap{T}(nside::Int, order::Order, vec::Vector{T}) = HealpixMap{T, nside, order}(vec)
+HealpixMap{T}(::Type{T}, nside::Int, order::Order=ring) = HealpixMap{T, nside, order}(zeros(T, nside2npix(nside)))
 
-Construct a `HealpixMap` with the given list of pixel values.
-"""
-HealpixMap{T}(nside::Int,order::Order,vec::Vector{T}) = HealpixMap{T,nside,order}(vec)
-"""
-    HealpixMap(T,nside,order=LibHealpix.ring)
-
-Construct a `HealpixMap` where all the coefficients are initialized to `zero(T)`.
-"""
-HealpixMap{T}(::Type{T},nside::Int,order::Order=ring) = HealpixMap{T,nside,order}(zeros(T,nside2npix(nside)))
-
-"""
-    HealpixMap(pixels;order=LibHealpix.ring)
-
-Construct a `HealpixMap` with the given list of pixel values.
-The value of `nside` is inferred from the number of pixels.
-"""
-function HealpixMap{T}(vec::Vector{T};order::Order=ring)
+function HealpixMap{T}(vec::Vector{T}, order::Order=ring)
     nside = npix2nside(length(vec))
     nside < 0 && throw(DimensionMismatch("The supplied list of pixels does not have a valid length."))
-    HealpixMap(nside,order,vec)
+    HealpixMap(nside, order, vec)
 end
+
+@deprecate HealpixMap(vec; order=ring) HealpixMap(vec, order)
 
 pixels(map::HealpixMap) = map.pixels
 length(map::HealpixMap) = length(pixels(map))
-getindex(map::HealpixMap,i) = pixels(map)[i]
-setindex!(map::HealpixMap,x,i) = pixels(map)[i] = x
+getindex(map::HealpixMap, i) = pixels(map)[i]
+setindex!(map::HealpixMap, x, i) = pixels(map)[i] = x
 
-nside{T,_nside,order}(map::HealpixMap{T,_nside,order}) = _nside
+nside{T, _nside, order}(map::HealpixMap{T, _nside, order}) = _nside
 npix(map::HealpixMap) = nside2npix(nside(map))
 nring(map::HealpixMap) = 4nside(map)-1
 
-isring{T,nside,order}(map::HealpixMap{T,nside,order}) = order == ring
-isnest{T,nside,order}(map::HealpixMap{T,nside,order}) = order == nest
+order{T, nside, _order}(map::HealpixMap{T, nside, _order}) = _order
+isring(map::HealpixMap) = order(map) == ring
+isnest(map::HealpixMap) = order(map) == nest
 
-getindex{T,nside}(map::HealpixMap{T,nside,ring},θ,ϕ) = getindex(map,ang2pix_ring(nside,θ,ϕ))
-getindex{T,nside}(map::HealpixMap{T,nside,nest},θ,ϕ) = getindex(map,ang2pix_nest(nside,θ,ϕ))
+getindex{T, nside}(map::HealpixMap{T, nside, ring}, θ, ϕ) = getindex(map, ang2pix_ring(nside, θ, ϕ))
+getindex{T, nside}(map::HealpixMap{T, nside, nest}, θ, ϕ) = getindex(map, ang2pix_nest(nside, θ, ϕ))
 
 for op in (:+,:-,:.*,:./)
-    @eval $op(lhs::HealpixMap,rhs::HealpixMap) = HealpixMap($op(pixels(lhs),pixels(rhs)))
+    @eval $op(lhs::HealpixMap, rhs::HealpixMap) = HealpixMap($op(pixels(lhs), pixels(rhs)))
 end
 
-*(lhs::Number,rhs::HealpixMap) = HealpixMap(lhs*pixels(rhs))
-*(lhs::HealpixMap,rhs::Number) = rhs*lhs
+*(lhs::Number, rhs::HealpixMap) = HealpixMap(lhs * pixels(rhs))
+*(lhs::HealpixMap, rhs::Number) = rhs * lhs
 
-function ==(lhs::HealpixMap,rhs::HealpixMap)
+function ==(lhs::HealpixMap, rhs::HealpixMap)
     nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
 end
 
 """
-    writehealpix(filename,map::HealpixMap;coordsys="C",replace=false)
+    writehealpix(filename, map::HealpixMap; coordsys="C", replace=false)
 
 Write the `HealpixMap` to disk as a FITS image. If the file already exists,
 an `ErrorException` is thrown, but this behavior may be overwritten
@@ -102,9 +102,7 @@ by specifying `replace=true`. The `coordsys` keyword specifies the
 coordinate system of the given `HealpixMap`, but this is currently
 not retrieved by the corresponding `readhealpix` function.
 """
-function writehealpix(filename,map::HealpixMap;
-                      coordsys::ASCIIString = "C",
-                      replace::Bool = false)
+function writehealpix(filename, map::HealpixMap; coordsys::ASCIIString = "C", replace::Bool = false)
     isdir(filename) && error("$filename is a directory")
     if isfile(filename)
         if replace
@@ -113,12 +111,13 @@ function writehealpix(filename,map::HealpixMap;
             error("$filename already exists")
         end
     end
-    # TODO: check return value
-    ccall(("write_healpix_map",libchealpix),Cint,
-          (Ptr{Cfloat},Clong,Ptr{Cchar},Cchar,Ptr{Cchar}),
-          pointer(Vector{Cfloat}(pixels(map))),
-          nside(map),pointer(filename),
-          isnest(map),pointer(coordsys))
+    pix = Vector{Cfloat}(pixels(map))
+    out = ccall(("write_healpix_map", libchealpix), Cint,
+                (Ptr{Cfloat}, Clong, Cstring, Cchar, Cstring),
+                pix, nside(map), filename, isnest(map), coordsys)
+    if out != 0
+        error("Error writing $filename ($out).")
+    end
 end
 
 """
@@ -133,13 +132,13 @@ function readhealpix(filename)
     # and corrupt Julia's memory, oops).
     # All the credit goes to Yichao Yu for finding this.
     # see: https://github.com/JuliaLang/julia/issues/11945
-    coordsys = zeros(UInt8,10)
-    ordering = zeros(UInt8,10)
-    ptr = ccall(("read_healpix_map",libchealpix),Ptr{Cfloat},
-                (Ptr{Cchar},Ref{Clong},Ptr{UInt8},Ptr{UInt8}),
-                pointer(filename),nside,pointer(coordsys),pointer(ordering))
-    HealpixMap(nside[],bytestring(ordering)[1:4] == "RING"? ring : nest,
-               pointer_to_array(ptr,nside2npix(nside[]),true))
+    coordsys = zeros(UInt8, 10)
+    ordering = zeros(UInt8, 10)
+    ptr = ccall(("read_healpix_map", libchealpix), Ptr{Cfloat},
+                (Cstring, Ref{Clong}, Ptr{UInt8}, Ptr{UInt8}),
+                filename, nside, coordsys, ordering)
+    HealpixMap(nside[], bytestring(ordering)[1:4] == "RING"? ring : nest,
+               pointer_to_array(ptr, nside2npix(nside[]), true))
 end
 
 ################################################################################
@@ -149,33 +148,33 @@ type HealpixMap_cxx
     ptr::Ptr{Void}
 end
 
+Base.unsafe_convert(::Type{Ptr{Void}}, map_cxx::HealpixMap_cxx) = map_cxx.ptr
+
 function delete(map_cxx::HealpixMap_cxx)
-    ccall(("deleteMap",libhealpixwrapper),Void,
-          (Ptr{Void},),pointer(map_cxx))
+    ccall(("deleteMap", libhealpixwrapper), Void, (Ptr{Void},), map_cxx)
 end
 
-pointer(map_cxx::HealpixMap_cxx) = map_cxx.ptr
+for f in (:nside, :npix)
+    @eval function $f(map_cxx::HealpixMap_cxx)
+        ccall(($(string(f)), libhealpixwrapper), Cint, (Ptr{Void},), map_cxx)
+    end
+end
 
-for f in (:nside,:npix)
-    @eval $f(map_cxx::HealpixMap_cxx) = ccall(($(string(f)),libhealpixwrapper),Cint,(Ptr{Void},),pointer(map_cxx))
+function order(map_cxx::HealpixMap_cxx)
+    ccall(("order", libhealpixwrapper), Cint, (Ptr{Void},), map_cxx) |> Order
 end
 
 function to_cxx(map::HealpixMap)
-    N = nside(map)
-    map_cxx = HealpixMap_cxx(ccall(("newMap",libhealpixwrapper),Ptr{Void},
-                                   (Ptr{Cdouble},Csize_t),
-                                   pixels(map),Csize_t(N)))
-    finalizer(map_cxx,delete)
+    map_cxx = ccall(("newMap",libhealpixwrapper), Ptr{Void}, (Ptr{Cdouble}, Csize_t, Cint),
+                    pixels(map), nside(map), order(map)) |> HealpixMap_cxx
+    finalizer(map_cxx, delete)
     map_cxx
 end
 
 function to_julia(map_cxx::HealpixMap_cxx)
     # TODO: check and propagate the ordering of the C++ map
-    N = nside(map_cxx)
-    output = Array{Cdouble}(nside2npix(N))
-    ccall(("map2julia",libhealpixwrapper),Void,
-          (Ptr{Void},Ptr{Cdouble}),
-          pointer(map_cxx),pointer(output))
-    HealpixMap(output)
+    pix = Array{Cdouble}(npix(map_cxx))
+    ccall(("map2julia", libhealpixwrapper), Void, (Ptr{Void}, Ptr{Cdouble}), map_cxx, pix)
+    HealpixMap(pix, order(map_cxx))
 end
 
