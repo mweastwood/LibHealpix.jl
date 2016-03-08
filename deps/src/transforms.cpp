@@ -18,10 +18,10 @@
 #include <alm_healpix_tools.h>
 
 extern "C" {
-    void map2alm(Healpix_Map<double>* map, Alm<xcomplex<double> >* alm)
+    void map2alm(Healpix_Map<double>* map, Alm<xcomplex<double> >* alm, int num_iter)
     {
         arr<double> weight(2*map->Nside(),1.0);
-        map2alm(*map,*alm,weight);
+        map2alm_iter(*map,*alm,num_iter,weight);
     }
 
     void alm2map(Alm<xcomplex<double> >* alm, Healpix_Map<double>* map)
