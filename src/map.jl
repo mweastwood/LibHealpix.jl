@@ -112,12 +112,9 @@ function writehealpix(filename, map::HealpixMap; coordsys::ASCIIString = "C", re
         end
     end
     pix = Vector{Cfloat}(pixels(map))
-    out = ccall(("write_healpix_map", libchealpix), Cint,
-                (Ptr{Cfloat}, Clong, Cstring, Cchar, Cstring),
-                pix, nside(map), filename, isnest(map), coordsys)
-    if out != 0
-        error("Error writing $filename ($out).")
-    end
+    ccall(("write_healpix_map", libchealpix), Void,
+          (Ptr{Cfloat}, Clong, Cstring, Cchar, Cstring),
+          pix, nside(map), filename, isnest(map), coordsys)
 end
 
 """
