@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    mollweide(map::HEALPixMap)
+    mollweide(map::HealpixMap)
 
 Create an image of the map through the use of a Mollweide projection.
 The image will be zero in the region outside of the projection area.

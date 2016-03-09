@@ -84,6 +84,10 @@ end
 *(lhs::Number, rhs::Alm) = Alm(lmax(rhs), mmax(rhs), lhs * coefficients(rhs))
 *(lhs::Alm, rhs::Number) = rhs * lhs
 
+function ==(lhs::Alm, rhs::Alm)
+    lmax(lhs) == lmax(rhs) && mmax(lhs) == mmax(rhs) && coefficients(lhs) == coefficients(rhs)
+end
+
 ################################################################################
 # C++ wrapper methods
 

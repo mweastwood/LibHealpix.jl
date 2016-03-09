@@ -15,15 +15,11 @@
 To get started using LibHealpix, run:
 ```julia
 Pkg.add("LibHealpix")
-Pkg.build("LibHealpix")
 Pkg.test("LibHealpix")
 using LibHealpix
 ```
 
-The build process will attempt to download and build the [Healpix](http://healpix.jpl.nasa.gov/) library.
-
-###### Issues of building in OSX
-In OSX, by default, `gcc` and `g++` are linked to *Clang*, which does not supported some of the flags used to build the [Healpix](http://healpix.jpl.nasa.gov/) library and wrappers in this package. A quick fix could be to link `gcc` and `g++` to *GNU gcc/g++*.
+The build process will attempt to download and build the [Healpix](http://healpix.sourceforge.net) library.
 
 ## Examples
 
@@ -31,7 +27,7 @@ In OSX, by default, `gcc` and `g++` are linked to *Clang*, which does not suppor
 ```julia
 using LibHealpix
 nside = 16
-map = HealpixMap(Float64,nside)
+map = HealpixMap(Float64, nside)
 for i = 1:length(map)
     map[i] = i
 end
@@ -41,26 +37,27 @@ end
 ```julia
 using LibHealpix
 lmax = mmax = 10
-alm = Alm(Complex128,lmax,mmax)
+alm = Alm(Complex128, lmax, mmax)
 for m = 0:mmax, l = m:lmax
     alm[l,m] = l + m
 end
-map = alm2map(alm,nside=16)
-blm = map2alm(map,lmax=20,mmax=20)
+nside = 16
+map = alm2map(alm, nside)
+blm = map2alm(map, lmax, mmax)
 ```
 
 ### FITS I/O
 ```julia
 using LibHealpix
 map = readhealpix("map.fits")
-writehealpix("othermap.fits",map)
+writehealpix("othermap.fits", map)
 ```
 
 ### Visualization
 ```julia
 using LibHealpix
 using PyPlot # for imshow(...)
-map = HealpixMap(Float64,nside)
+map = HealpixMap(Float64, nside)
 for i = 1:length(map)
     map[i] = rand()
 end
@@ -71,3 +68,4 @@ imshow(img)
 ## Development
 This package is very much a work in progress. Only a small part of the Healpix library is currently wrapped.
 Please open issues or pull requests for missing functionality.
+

@@ -145,7 +145,7 @@ end
 # C++ wrapper methods
 
 type HealpixMap_cxx
-    ptr::Ptr{Void}
+    ptr :: Ptr{Void}
 end
 
 Base.unsafe_convert(::Type{Ptr{Void}}, map_cxx::HealpixMap_cxx) = map_cxx.ptr
@@ -172,7 +172,6 @@ function to_cxx(map::HealpixMap)
 end
 
 function to_julia(map_cxx::HealpixMap_cxx)
-    # TODO: check and propagate the ordering of the C++ map
     pix = Array{Cdouble}(npix(map_cxx))
     ccall(("map2julia", libhealpixwrapper), Void, (Ptr{Void}, Ptr{Cdouble}), map_cxx, pix)
     HealpixMap(pix, order(map_cxx))
