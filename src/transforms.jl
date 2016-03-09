@@ -13,24 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function map2alm(map::HealpixMap;lmax::Int=100,mmax::Int=100)
+function map2alm(map::HealpixMap, lmax::Int, mmax::Int; iterations::Int=0)
     isring(map) || error("The input HealpixMap must have ring ordering.")
-    nalm = num_alm(lmax,mmax)
+    nalm = num_alm(lmax, mmax)
     map_cxx = map |> to_cxx
-    alm_cxx = Alm(lmax,mmax,zeros(Complex128,nalm)) |> to_cxx
-    ccall(("map2alm",libhealpixwrapper),Void,
-          (Ptr{Void},Ptr{Void}),
-          pointer(map_cxx),pointer(alm_cxx))
+    alm_cxx = Alm(lmax, mmax, zeros(Complex128, nalm)) |> to_cxx
+    ccall(("map2alm",libhealpixwrapper), Void, (Ptr{Void}, Ptr{Void}, Cint), map_cxx, alm_cxx, iterations)
     alm_cxx |> to_julia
 end
 
-function alm2map(alm::Alm;nside::Int=32)
+function alm2map(alm::Alm, nside::Int)
     npix = nside2npix(nside)
     alm_cxx = alm |> to_cxx
-    map_cxx = HealpixMap(zeros(Cdouble,npix)) |> to_cxx
-    ccall(("alm2map",libhealpixwrapper),Void,
-          (Ptr{Void},Ptr{Void}),
-          pointer(alm_cxx),pointer(map_cxx))
+    map_cxx = HealpixMap(zeros(Cdouble, npix)) |> to_cxx
+    ccall(("alm2map", libhealpixwrapper), Void, (Ptr{Void}, Ptr{Void}), alm_cxx, map_cxx)
     map_cxx |> to_julia
 end
+
+@deprecate map2alm(map; lmax=100, mmax=100) map2alm(map, lmax, mmax)
+@deprecate alm2map(alm; nside=32) alm2map(alm, nside)
 

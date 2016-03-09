@@ -17,7 +17,7 @@
 #include <healpix_map.h>
 
 extern "C" {
-    Healpix_Map<double>* newMap(double* vec_map, size_t nside)
+    Healpix_Map<double>* newMap(double* vec_map, size_t nside, int order)
     {
         size_t npix = 12*nside*nside;
         // Pack the pixel values into Healpix's arr container
@@ -25,7 +25,8 @@ extern "C" {
         for (size_t i = 0; i < npix; ++i)
             arr_map[i] = vec_map[i];
         // Create the Healpix_Map container
-        Healpix_Map<double>* map = new Healpix_Map<double>(arr_map,RING);
+        Healpix_Ordering_Scheme scheme = static_cast<Healpix_Ordering_Scheme>(order);
+        Healpix_Map<double>* map = new Healpix_Map<double>(arr_map, scheme);
         return map;
     }
     void deleteMap(Healpix_Map<double>* map) {delete map;}
@@ -36,5 +37,6 @@ extern "C" {
     }
     int nside(Healpix_Map<double>* map) {return map->Nside();}
     int npix(Healpix_Map<double>* map) {return map->Npix();}
+    int order(Healpix_Map<double>* map) {return map->Scheme();}
 }
 
