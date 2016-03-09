@@ -38,6 +38,25 @@
         @test isnest(map)
     end
 
+    let nside = 16
+        map = HealpixMap(Float64,nside,LibHealpix.ring)
+        map[1] = 1
+        @test map[1] == pixels(map)[1] == 1
+        map[2] = 2
+        @test map[2] == pixels(map)[2] == 2
+
+        a = rand(Float64)
+        b = rand(Complex128)
+        x = rand(Float64, nside2npix(nside))
+        y = rand(Float64, nside2npix(nside))
+        map1 = HealpixMap(x)
+        map2 = HealpixMap(y)
+        @test pixels(map1+map2) == x+y
+        @test pixels(map1-map2) == x-y
+        @test pixels(a*map1) == pixels(map1*a) == a*x
+        @test_throws MethodError b*map1
+    end
+
     let
         for order in (LibHealpix.ring, LibHealpix.nest)
             map = HealpixMap(Float64, 512, order)

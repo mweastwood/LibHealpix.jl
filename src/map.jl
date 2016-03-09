@@ -86,8 +86,8 @@ for op in (:+,:-,:.*,:./)
     @eval $op(lhs::HealpixMap, rhs::HealpixMap) = HealpixMap($op(pixels(lhs), pixels(rhs)))
 end
 
-*(lhs::Number, rhs::HealpixMap) = HealpixMap(lhs * pixels(rhs))
-*(lhs::HealpixMap, rhs::Number) = rhs * lhs
+*(lhs::Real, rhs::HealpixMap) = HealpixMap(lhs * pixels(rhs))
+*(lhs::HealpixMap, rhs::Real) = rhs * lhs
 
 function ==(lhs::HealpixMap, rhs::HealpixMap)
     nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
