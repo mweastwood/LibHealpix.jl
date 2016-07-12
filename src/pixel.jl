@@ -16,6 +16,18 @@
 ################################################################################
 # Pixel operations
 
+"""
+    verify_angles(θ, ϕ)
+
+Healpix generally expects $θ ∈ [0,π]$, and $ϕ ∈ [0,2π)$.
+This function simply checks and enforces these requirements.
+"""
+function verify_angles(θ, ϕ)
+    0 ≤ θ ≤ π || throw(DomainError())
+    ϕ = mod2π(ϕ)
+    θ, ϕ
+end
+
 types = (Clong == Clonglong)? (:Clong,) : (:Clong, :Clonglong)
 for T in types
     # Append "64" to the ccall function name when defining for Clonglong
@@ -24,8 +36,8 @@ for T in types
 
     for f in (:ang2pix_nest, :ang2pix_ring)
         @eval function $f(nside::$T, θ::Cdouble, ϕ::Cdouble)
+            θ, ϕ = verify_angles(θ, ϕ)
             ipixptr = Ref{$T}(0)
-            0 ≤ θ ≤ π || error("θ is out of range")
             ccall(($(funcname(f)), libchealpix), Void, ($T, Cdouble, Cdouble, Ref{$T}), nside, θ, ϕ, ipixptr)
             ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
         end
@@ -73,6 +85,7 @@ for T in types
 end
 
 function ang2vec(θ::Cdouble, ϕ::Cdouble)
+    θ, ϕ = verify_angles(θ, ϕ)
     vec = Array(Cdouble,3)
     ccall(("ang2vec", libchealpix), Void, (Cdouble, Cdouble, Ptr{Cdouble}), θ, ϕ, vec)
     vec
