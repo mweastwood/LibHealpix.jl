@@ -79,8 +79,8 @@ order{T, nside, _order}(map::HealpixMap{T, nside, _order}) = _order
 isring(map::HealpixMap) = order(map) == ring
 isnest(map::HealpixMap) = order(map) == nest
 
-getindex{T, nside}(map::HealpixMap{T, nside, ring}, θ, ϕ) = getindex(map, ang2pix_ring(nside, θ, ϕ))
-getindex{T, nside}(map::HealpixMap{T, nside, nest}, θ, ϕ) = getindex(map, ang2pix_nest(nside, θ, ϕ))
+@deprecate getindex{T, nside}(map::HealpixMap{T, nside, ring}, θ, ϕ) getindex(map, ang2pix_ring(nside, θ, ϕ))
+@deprecate getindex{T, nside}(map::HealpixMap{T, nside, nest}, θ, ϕ) getindex(map, ang2pix_nest(nside, θ, ϕ))
 
 for op in (:+,:-,:.*,:./)
     @eval $op(lhs::HealpixMap, rhs::HealpixMap) = HealpixMap($op(pixels(lhs), pixels(rhs)))
@@ -91,6 +91,15 @@ end
 
 function ==(lhs::HealpixMap, rhs::HealpixMap)
     nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
+end
+
+function interpolate(map::HealpixMap, θ::Float64, ϕ::Float64)
+    interpolate(to_cxx(map), θ, ϕ)
+end
+
+function interpolate(map::HealpixMap, θlist::Vector, ϕlist::Vector)
+    map_cxx = to_cxx(map)
+    Float64[interpolate(map_cxx, Float64(θ), Float64(ϕ)) for (θ, ϕ) in zip(θlist, ϕlist)]
 end
 
 """
@@ -163,7 +172,7 @@ end
 
 function to_cxx(map::HealpixMap)
     map_cxx = ccall(("newMap",libhealpixwrapper), Ptr{Void}, (Ptr{Cdouble}, Csize_t, Cint),
-                    pixels(map), nside(map), order(map)) |> HealpixMap_cxx
+                    Vector{Float64}(pixels(map)), nside(map), order(map)) |> HealpixMap_cxx
     finalizer(map_cxx, delete)
     map_cxx
 end
@@ -172,5 +181,12 @@ function to_julia(map_cxx::HealpixMap_cxx)
     pix = Array{Cdouble}(npix(map_cxx))
     ccall(("map2julia", libhealpixwrapper), Void, (Ptr{Void}, Ptr{Cdouble}), map_cxx, pix)
     HealpixMap(pix, order(map_cxx))
+end
+
+function interpolate(map_cxx::HealpixMap_cxx, θ::Float64, ϕ::Float64)
+    θ, ϕ = verify_angles(θ, ϕ)
+    output = ccall(("interpolate", libhealpixwrapper), Cdouble,
+          (Ptr{Void}, Cdouble, Cdouble), map_cxx, θ, ϕ)
+    output
 end
 

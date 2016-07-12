@@ -38,5 +38,14 @@ extern "C" {
     int nside(Healpix_Map<double>* map) {return map->Nside();}
     int npix(Healpix_Map<double>* map) {return map->Npix();}
     int order(Healpix_Map<double>* map) {return map->Scheme();}
+
+    double interpolate(Healpix_Map<double>* map, double theta, double phi) {
+        pointing ptg = pointing(theta, phi);
+        fix_arr<int,4> pix = fix_arr<int,4>();
+        fix_arr<double,4> wgt = fix_arr<double,4>();
+        map->get_interpol(ptg, pix, wgt);
+        return wgt[0]*(*map)[pix[0]] + wgt[1]*(*map)[pix[1]]
+                + wgt[2]*(*map)[pix[2]] + wgt[3]*(*map)[pix[3]];
+    }
 }
 
