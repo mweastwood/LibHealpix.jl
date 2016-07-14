@@ -24,7 +24,7 @@ This function simply checks and enforces these requirements.
 """
 function verify_angles(θ, ϕ)
     0 ≤ θ ≤ π || throw(DomainError())
-    ϕ = mod2π(ϕ)
+    ϕ = mod2pi(ϕ)
     θ, ϕ
 end
 
