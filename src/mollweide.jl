@@ -35,7 +35,8 @@ function mollweide(map::HealpixMap)
             -π < long < π || continue
             θ = π/2 - lat
             ϕ = 2π - mod2pi(long + 2π)
-            img[i,j] = map[θ,ϕ]
+            pix = ang2pix(map, θ, ϕ)
+            img[i,j] = map[pix]
         end
     end
     img'

@@ -93,6 +93,9 @@ function ==(lhs::HealpixMap, rhs::HealpixMap)
     nside(lhs) == nside(rhs) && isring(lhs) == isring(rhs) && pixels(lhs) == pixels(rhs)
 end
 
+ang2pix{nside,T}(map::HealpixMap{T,nside,ring}, θ, ϕ) = ang2pix_ring(nside, θ, ϕ)
+ang2pix{nside,T}(map::HealpixMap{T,nside,nest}, θ, ϕ) = ang2pix_nest(nside, θ, ϕ)
+
 function interpolate(map::HealpixMap, θ::Float64, ϕ::Float64)
     interpolate(to_cxx(map), θ, ϕ)
 end
