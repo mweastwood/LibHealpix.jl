@@ -186,7 +186,7 @@ end
 function interpolate(map_cxx::HealpixMap_cxx, θ::Float64, ϕ::Float64)
     θ, ϕ = verify_angles(θ, ϕ)
     output = ccall(("interpolate", libhealpixwrapper), Cdouble,
-          (Ptr{Void}, Cdouble, Cdouble), map_cxx, θ, ϕ)
+                   (Ptr{Void}, Cdouble, Cdouble), map_cxx, θ, ϕ)
     output
 end
 
