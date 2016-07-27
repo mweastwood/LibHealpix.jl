@@ -1,7 +1,7 @@
 # LibHealpix
 
 [![Build Status](https://travis-ci.org/mweastwood/LibHealpix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/LibHealpix.jl)
-[![Coverage Status](https://img.shields.io/codecov/c/github/mweastwood/LibHealpix.jl.svg)](https://codecov.io/github/mweastwood/LibHealpix.jl)
+[![codecov](https://codecov.io/gh/mweastwood/LibHealpix.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/mweastwood/LibHealpix.jl)
 [![License](https://img.shields.io/badge/license-GPLv3%2B-blue.svg)](LICENSE.md)
 
 > Healpix is an acronym for Hierarchical Equal Area isoLatitude Pixelization of a sphere.
