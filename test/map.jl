@@ -66,6 +66,17 @@
         end
     end
 
+    let
+        map = HealpixMap(Float64, 4)
+        map[1] = rand()
+        map[2] = rand()
+        map[3] = rand()
+        map[4] = rand()
+        expected = (map[1] + map[2] + map[3] + map[4])/4
+        @test LibHealpix.interpolate(map, 0.0, 0.0) == expected
+        @test LibHealpix.interpolate(map, [0.0, 0.0], [0.0, 0.0]) == [expected, expected]
+    end
+
     let nside = 16
         filename = tempname()*".fits"
         map = HealpixMap(Float32,nside)
