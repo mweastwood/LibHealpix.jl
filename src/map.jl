@@ -114,7 +114,7 @@ by specifying `replace=true`. The `coordsys` keyword specifies the
 coordinate system of the given `HealpixMap`, but this is currently
 not retrieved by the corresponding `readhealpix` function.
 """
-function writehealpix(filename, map::HealpixMap; coordsys::ASCIIString = "C", replace::Bool = false)
+function writehealpix(filename, map::HealpixMap; coordsys::String = "C", replace::Bool = false)
     isdir(filename) && error("$filename is a directory")
     if isfile(filename)
         if replace
@@ -146,8 +146,8 @@ function readhealpix(filename)
     ptr = ccall(("read_healpix_map", libchealpix), Ptr{Cfloat},
                 (Cstring, Ref{Clong}, Ptr{UInt8}, Ptr{UInt8}),
                 filename, nside, coordsys, ordering)
-    HealpixMap(nside[], bytestring(ordering)[1:4] == "RING"? ring : nest,
-               pointer_to_array(ptr, nside2npix(nside[]), true))
+    HealpixMap(nside[], String(ordering[1:4]) == "RING"? ring : nest,
+               unsafe_wrap(Array, ptr, nside2npix(nside[]), true))
 end
 
 ################################################################################

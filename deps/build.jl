@@ -1,5 +1,4 @@
 module Apt
-    using Compat # for readstring
     can_use() = try success(`apt-get -v`) catch exception false end
     find(pkg) = startswith(readstring(`apt-cache showpkg $pkg`), "Package: $pkg")
     function install(pkg)
@@ -32,7 +31,7 @@ function manually_build_healpix()
     run(`./build_healpix.sh`)
 end
 
-@linux_only begin
+if is_linux()
     if Apt.can_use()
         Apt.find("libcfitsio3-dev") && Apt.install("libcfitsio3-dev")
         if Apt.find("libchealpix-dev") && Apt.find("libhealpix-cxx-dev")
@@ -46,7 +45,7 @@ end
     end
 end
 
-@osx_only begin
+if is_apple()
     if Homebrew.can_use()
         Homebrew.install("cfitsio")
     end
