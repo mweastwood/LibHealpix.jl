@@ -17,36 +17,24 @@ __precompile__()
 
 module LibHealpix
 
-export HealpixMap, pixels, nside, npix, nring, isring, isnest
-export Alm, coefficients, lmax, mmax
-export npix2nside, nside2npix
-export map2alm, alm2map
+export HealpixMap, Alm
 export writehealpix, readhealpix
+export map2alm, alm2map
 export mollweide
 
-importall Base.Operators
-import Base: length, pointer
+using StaticArrays
 
-function __init__()
-    usr_lib = joinpath(dirname(@__FILE__), "../deps/usr/lib")
-    if isfile(joinpath(usr_lib, "libchealpix."*Libdl.dlext))
-        global const libchealpix = joinpath(usr_lib, "libchealpix")
-    else
-        global const libchealpix = joinpath("libchealpix")
-    end
-    if isfile(joinpath(usr_lib, "libhealpix_cxx."*Libdl.dlext))
-        Libdl.dlopen(joinpath(usr_lib, "libhealpix_cxx"), Libdl.RTLD_GLOBAL)
-    else
-        Libdl.dlopen("libhealpix_cxx", Libdl.RTLD_GLOBAL)
-    end
-    global const libhealpixwrapper = joinpath(usr_lib, "libhealpixwrapper")
+if isfile(joinpath(dirname(@__FILE__),"..","deps","deps.jl"))
+    include("../deps/deps.jl")
+else
+    error("LibHealpix not properly installed. Please run Pkg.build(\"LibHealpix\")")
 end
 
 include("pixel.jl")
-include("map.jl")
-include("alm.jl")
-include("transforms.jl")
-include("mollweide.jl")
+#include("map.jl")
+#include("alm.jl")
+#include("transforms.jl")
+#include("mollweide.jl")
 
 end
 
