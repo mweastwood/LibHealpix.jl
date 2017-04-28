@@ -17,7 +17,8 @@ __precompile__()
 
 module LibHealpix
 
-export HealpixMap, Alm
+export HealpixMap, ring, nest
+export Alm
 export writehealpix, readhealpix
 export map2alm, alm2map
 export mollweide
@@ -31,7 +32,7 @@ else
 end
 
 include("pixel.jl")
-#include("map.jl")
+include("map.jl")
 #include("alm.jl")
 #include("transforms.jl")
 #include("mollweide.jl")

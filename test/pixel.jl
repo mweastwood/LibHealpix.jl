@@ -90,6 +90,8 @@
         @test LibHealpix.npix2nside(786432) == 256
         @test LibHealpix.npix2nside(3145728) == 512
         @test LibHealpix.npix2nside(12582912) == 1024
+        @test_throws ArgumentError LibHealpix.npix2nside(11)
+        @test_throws ArgumentError LibHealpix.npix2nside(13)
         @inferred LibHealpix.npix2nside(49152)
     end
 

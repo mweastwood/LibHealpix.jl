@@ -1,100 +1,167 @@
+# Copyright (c) 2015-2017 Michael Eastwood
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 @testset "map.jl" begin
-    let
-        @test_throws DimensionMismatch HealpixMap{Float64,2,LibHealpix.ring}(zeros(Float64,5))
+    @testset "constructors" begin
+        nside = 4
+        npix = LibHealpix.nside2npix(nside)
+        pixels = randn(npix)
+        zero_pixels = zeros(npix)
 
-        nside′ = 16
-        npix′ = nside2npix(nside′)
+        for order in (ring, nest)
+            map = HealpixMap(Float64, nside, order)
+            @test map.nside === nside
+            @test map.order === order
+            @test map.pixels == zero_pixels
+            @inferred HealpixMap(Float64, nside, order)
 
-        map = HealpixMap(nside′,LibHealpix.ring,zeros(npix′))
-        @test npix(map) == npix′ == length(map)
-        @test nside(map) == nside′
-        @test isring(map)
-        @test !isnest(map)
+            map = HealpixMap(nside, order, pixels)
+            @test map.nside === nside
+            @test map.order === order
+            @test map.pixels == pixels
+            @inferred HealpixMap(nside, order, pixels)
 
-        map = HealpixMap(Float64,nside′)
-        @test npix(map) == npix′ == length(map)
-        @test nside(map) == nside′
-        @test isring(map)
-        @test !isnest(map)
-        @test pixels(map) == zeros(Float64,npix′)
+            map = HealpixMap(order, pixels)
+            @test map.nside === nside
+            @test map.order === order
+            @test map.pixels == pixels
+            @inferred HealpixMap(order, pixels)
 
-        map = HealpixMap(Float64,nside′,LibHealpix.nest)
-        @test npix(map) == npix′ == length(map)
-        @test nside(map) == nside′
-        @test !isring(map)
-        @test isnest(map)
-        @test pixels(map) == zeros(Float64,npix′)
-
-        map = HealpixMap(zeros(npix′))
-        @test npix(map) == npix′ == length(map)
-        @test nside(map) == nside′
-        @test isring(map)
-        @test !isnest(map)
-
-        map = HealpixMap(zeros(npix′), LibHealpix.nest)
-        @test npix(map) == npix′ == length(map)
-        @test nside(map) == nside′
-        @test !isring(map)
-        @test isnest(map)
-    end
-
-    let nside = 16
-        map = HealpixMap(Float64,nside,LibHealpix.ring)
-        map[1] = 1
-        @test map[1] == pixels(map)[1] == 1
-        map[2] = 2
-        @test map[2] == pixels(map)[2] == 2
-
-        a = rand(Float64)
-        b = rand(Complex128)
-        x = rand(Float64, nside2npix(nside))
-        y = rand(Float64, nside2npix(nside))
-        map1 = HealpixMap(x)
-        map2 = HealpixMap(y)
-        @test pixels(map1+map2) == x+y
-        @test pixels(map1-map2) == x-y
-        @test pixels(a*map1) == pixels(map1*a) == a*x
-        @test_throws MethodError b*map1
-    end
-
-    let
-        for order in (LibHealpix.ring, LibHealpix.nest)
-            map = HealpixMap(Float64, 512, order)
-            rand!(map.pixels)
-            map′ = LibHealpix.to_julia(LibHealpix.to_cxx(map))
-            @test map == map′
+            @test_throws ArgumentError HealpixMap(nside, order, randn(npix+1))
         end
     end
 
-    let
-        map = HealpixMap(Float64, 4)
-        map[1] = rand()
-        map[2] = rand()
-        map[3] = rand()
-        map[4] = rand()
-        expected = (map[1] + map[2] + map[3] + map[4])/4
-        @test LibHealpix.interpolate(map, 0.0, 0.0) == expected
-        @test LibHealpix.interpolate(map, [0.0, 0.0], [0.0, 0.0]) == [expected, expected]
+    @testset "indexing" begin
+        nside = 4
+        npix = LibHealpix.nside2npix(nside)
+        pixels = randn(npix)
+        map = HealpixMap(nside, ring, copy(pixels))
+
+        @test map[1] === pixels[1]
+        @test map[end] === pixels[end]
+        @test map[4:5:end] == pixels[4:5:end]
+        @test map[map .> 0] == pixels[pixels .> 0]
+
+        map[1] = 2
+        @test map[1] == 2
+        map[end] = 2
+        @test map[end] == 2
+        map[4:5:end] = 2
+        @test all(map[4:5:end] .== 2)
+        map[map .> 0] = 2
+        @test all(map[map .> 0] .== 2)
     end
 
-    let nside = 16
-        filename = tempname()*".fits"
-        map = HealpixMap(Float32,nside)
-        for i = 1:length(map)
-            map[i] = rand()
-        end
-        writehealpix(filename,map)
-        newmap = readhealpix(filename)
-        @test map == newmap
-        @test_throws ErrorException writehealpix(filename,map)
+    @testset "arithmetic" begin
+        nside = 4
+        npix = LibHealpix.nside2npix(nside)
+        a = randn()
+        map1 = HealpixMap( nside, ring, randn( npix))
+        map2 = HealpixMap( nside, ring, randn( npix))
+        map3 = HealpixMap(2nside, ring, randn(4npix))
+        map4 = HealpixMap( nside, nest, randn( npix))
 
-        # try with nest ordering instead
-        filename = tempname()*".fits"
-        map = HealpixMap(pixels(map), LibHealpix.nest)
-        writehealpix(filename,map)
-        newmap = readhealpix(filename)
-        @test map == newmap
-        @test_throws ErrorException writehealpix(filename,map)
+        @test map1 + map2 == HealpixMap(nside, ring, map1.pixels + map2.pixels)
+        @test map1 - map2 == HealpixMap(nside, ring, map1.pixels - map2.pixels)
+        @test_throws DimensionMismatch map1 * map2
+        @test_throws DimensionMismatch map1 / map2
+        @inferred map1 + map2
+        @inferred map1 - map2
+
+        @test_throws DimensionMismatch map1 + map3
+        @test_throws DimensionMismatch map1 - map3
+        @test_throws ArgumentError map1 + map4
+        @test_throws ArgumentError map1 - map4
+
+        @test map1 + a == HealpixMap(nside, ring, map1.pixels + a)
+        @test map1 - a == HealpixMap(nside, ring, map1.pixels - a)
+        @test map1 * a == HealpixMap(nside, ring, map1.pixels * a)
+        @test map1 / a == HealpixMap(nside, ring, map1.pixels / a)
+        @test a + map1 == HealpixMap(nside, ring, a + map1.pixels)
+        @test a - map1 == HealpixMap(nside, ring, a - map1.pixels)
+        @test a * map1 == HealpixMap(nside, ring, a * map1.pixels)
+        @test a ./ map1 == HealpixMap(nside, ring, a ./ map1.pixels)
+        @inferred map1 + a
+        @inferred map1 - a
+        @inferred map1 * a
+        @inferred map1 / a
+        @inferred a + map1
+        @inferred a - map1
+        @inferred a * map1
+        @inferred a ./ map1
+
+        @test mean([map1, map2]) == (map1 + map2)/2
     end
+
+    #let nside = 16
+    #    map = HealpixMap(Float64,nside,LibHealpix.ring)
+    #    map[1] = 1
+    #    @test map[1] == pixels(map)[1] == 1
+    #    map[2] = 2
+    #    @test map[2] == pixels(map)[2] == 2
+
+    #    a = rand(Float64)
+    #    b = rand(Complex128)
+    #    x = rand(Float64, nside2npix(nside))
+    #    y = rand(Float64, nside2npix(nside))
+    #    map1 = HealpixMap(x)
+    #    map2 = HealpixMap(y)
+    #    @test pixels(map1+map2) == x+y
+    #    @test pixels(map1-map2) == x-y
+    #    @test pixels(a*map1) == pixels(map1*a) == a*x
+    #    @test_throws MethodError b*map1
+    #end
+
+    #let
+    #    for order in (LibHealpix.ring, LibHealpix.nest)
+    #        map = HealpixMap(Float64, 512, order)
+    #        rand!(map.pixels)
+    #        map′ = LibHealpix.to_julia(LibHealpix.to_cxx(map))
+    #        @test map == map′
+    #    end
+    #end
+
+    #let
+    #    map = HealpixMap(Float64, 4)
+    #    map[1] = rand()
+    #    map[2] = rand()
+    #    map[3] = rand()
+    #    map[4] = rand()
+    #    expected = (map[1] + map[2] + map[3] + map[4])/4
+    #    @test LibHealpix.interpolate(map, 0.0, 0.0) == expected
+    #    @test LibHealpix.interpolate(map, [0.0, 0.0], [0.0, 0.0]) == [expected, expected]
+    #end
+
+    #let nside = 16
+    #    filename = tempname()*".fits"
+    #    map = HealpixMap(Float32,nside)
+    #    for i = 1:length(map)
+    #        map[i] = rand()
+    #    end
+    #    writehealpix(filename,map)
+    #    newmap = readhealpix(filename)
+    #    @test map == newmap
+    #    @test_throws ErrorException writehealpix(filename,map)
+
+    #    # try with nest ordering instead
+    #    filename = tempname()*".fits"
+    #    map = HealpixMap(pixels(map), LibHealpix.nest)
+    #    writehealpix(filename,map)
+    #    newmap = readhealpix(filename)
+    #    @test map == newmap
+    #    @test_throws ErrorException writehealpix(filename,map)
+    #end
 end
 
