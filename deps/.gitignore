@@ -2,5 +2,7 @@
 *.so
 *.dylib
 downloads/*
+src/*
+builds/*
 usr/*
 deps.jl
