@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <arr.h>
-#include <healpix_map.h>
+#include "arr.h"
+#include "healpix_map.h"
 
 extern "C" {
     Healpix_Map<double>* newMap(double* vec_map, size_t nside, int order)

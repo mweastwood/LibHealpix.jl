@@ -15,37 +15,40 @@
 
 @enum Order ring nest
 
-#"""
-#    HealpixMap{T<:AbstractFloat, nside, order}
-#
-#This type holds a list of pixel values. Each pixel corresponds to an
-#equal-area region on the surface of a sphere as is defined by the
-#Healpix projection.
-#
-#Construction of this type will throw a `DimensionMismatch` exception
-#if the incorrect number of pixels are provided for the given value
-#of `nside`. Use the function `nside2npix` to compute the appropriate
-#number of pixels.
-#
-#The type parameter `order` must be one of either `LibHealpix.ring`
-#or `LibHealpix.nest`. This defines whether pixels should be ordered
-#by equal latitude rings (useful for spherical harmonic transforms)
-#or by a nested scheme where adjacent pixels are likely to be nearby
-#in memory.
-#
-#    HealpixMap(nside, order, pixels)
-#
-#Construct a `HealpixMap` with the given list of pixel values.
-#
-#    HealpixMap(T, nside, order=LibHealpix.ring)
-#
-#Construct a `HealpixMap` where all the coefficients are initialized to `zero(T)`.
-#
-#    HealpixMap(pixels, order=LibHealpix.ring)
-#
-#Construct a `HealpixMap` with the given list of pixel values.
-#The value of `nside` is inferred from the number of pixels.
-#"""
+"""
+    HealpixMap{T<:AbstractFloat}
+
+This type represents a map of the sky represented with the Healpix equal-area pixelization of the
+sphere.
+
+Construction of this type will throw an `ArgumentError` exception if the incorrect number of pixels
+are provided for the given value of `nside`. Use the function `nside2npix` to compute the
+appropriate number of pixels.
+
+# Fields
+
+* `nside` - the number of pixels along the side of each face.
+* `order` - must be either `ring` or `nest`. This defines whether pixels should be ordered by equal
+            latitude rings (useful for spherical harmonic transforms) or by a nested scheme where
+            adjacent pixels are likely to be nearby in memory.
+* `pixels` - the list of pixel values. Note that the number of pixels must be consistent with the
+             value of `nside` and the ordering of the pixels is specified by `order`.
+
+# Constructors
+
+    HealpixMap(nside, order, pixels)
+
+Construct a `HealpixMap` with the given list of pixel values.
+
+    HealpixMap(T, nside, order)
+
+Construct a `HealpixMap` where all the coefficients are initialized to `zero(T)`.
+
+    HealpixMap(order, pixels)
+
+Construct a `HealpixMap` with the given list of pixel values.  The value of `nside` is inferred from
+the number of pixels.
+"""
 struct HealpixMap{T<:AbstractFloat} <: AbstractVector{T}
     nside :: Int
     order :: Order
@@ -65,9 +68,9 @@ function HealpixMap(::Type{T}, nside::Int, order::Order) where T
     HealpixMap{T}(nside, order, zeros(T, nside2npix(nside)))
 end
 
-function HealpixMap{T}(order::Order, vec::Vector{T})
-    nside = npix2nside(length(vec))
-    HealpixMap(nside, order, vec)
+function HealpixMap{T}(order::Order, pixels::Vector{T})
+    nside = npix2nside(length(pixels))
+    HealpixMap(nside, order, pixels)
 end
 
 # Implement the AbstractArray interface
@@ -130,52 +133,53 @@ end
 #    map_cxx = to_cxx(map)
 #    Float64[interpolate(map_cxx, Float64(θ), Float64(ϕ)) for (θ, ϕ) in zip(θlist, ϕlist)]
 #end
-#
-#"""
-#    writehealpix(filename, map::HealpixMap; coordsys="C", replace=false)
-#
-#Write the `HealpixMap` to disk as a FITS image. If the file already exists,
-#an `ErrorException` is thrown, but this behavior may be overwritten
-#by specifying `replace=true`. The `coordsys` keyword specifies the
-#coordinate system of the given `HealpixMap`, but this is currently
-#not retrieved by the corresponding `readhealpix` function.
-#"""
-#function writehealpix(filename, map::HealpixMap; coordsys::String = "C", replace::Bool = false)
-#    isdir(filename) && error("$filename is a directory")
-#    if isfile(filename)
-#        if replace
-#            rm(filename)
-#        else
-#            error("$filename already exists")
-#        end
-#    end
-#    pix = Vector{Cfloat}(pixels(map))
-#    ccall(("write_healpix_map", libchealpix), Void,
-#          (Ptr{Cfloat}, Clong, Cstring, Cchar, Cstring),
-#          pix, nside(map), filename, isnest(map), coordsys)
-#end
-#
-#"""
-#    readhealpix(filename) -> HealpixMap
-#
-#Read a `HealpixMap` (stored as a FITS image) from disk.
-#"""
-#function readhealpix(filename)
-#    nside = Ref{Clong}()
-#    # Make sure we're allocating enough space for
-#    # these strings (so that they don't overwrite
-#    # and corrupt Julia's memory, oops).
-#    # All the credit goes to Yichao Yu for finding this.
-#    # see: https://github.com/JuliaLang/julia/issues/11945
-#    coordsys = zeros(UInt8, 10)
-#    ordering = zeros(UInt8, 10)
-#    ptr = ccall(("read_healpix_map", libchealpix), Ptr{Cfloat},
-#                (Cstring, Ref{Clong}, Ptr{UInt8}, Ptr{UInt8}),
-#                filename, nside, coordsys, ordering)
-#    HealpixMap(nside[], String(ordering[1:4]) == "RING"? ring : nest,
-#               unsafe_wrap(Array, ptr, nside2npix(nside[]), true))
-#end
-#
+
+"""
+    writehealpix(filename, map::HealpixMap; coordsys="C", replace=false)
+
+Write the `HealpixMap` to disk as a FITS image.
+
+The `coordsys` keyword specifies the coordinate system of the given `HealpixMap`, but this is
+currently not retrieved by the corresponding `readhealpix` function.
+
+If the file already exists, an `ErrorException` is thrown, but this behavior may be overwritten by
+specifying `replace=true`.
+"""
+function writehealpix(filename, map::HealpixMap; coordsys::String = "C", replace::Bool = false)
+    isdir(filename) && error("$filename is a directory")
+    if isfile(filename)
+        if replace
+            rm(filename)
+        else
+            error("$filename already exists")
+        end
+    end
+    pixels = Vector{Cfloat}(map.pixels)
+    ccall(("write_healpix_map", libchealpix), Void,
+          (Ptr{Cfloat}, Clong, Cstring, Cchar, Cstring),
+          pixels, map.nside, filename, map.order == nest, coordsys)
+    map
+end
+
+"""
+    readhealpix(filename)
+
+Read a `HealpixMap` (stored as a FITS image) from disk.
+"""
+function readhealpix(filename) :: HealpixMap
+    nside = Ref{Clong}()
+    # Make sure we're allocating enough space for these strings (so that they don't overwrite and
+    # corrupt Julia's memory, oops).  All the credit goes to Yichao Yu for finding this.
+    # see: https://github.com/JuliaLang/julia/issues/11945
+    coordsys = zeros(UInt8, 10)
+    ordering = zeros(UInt8, 10)
+    ptr = ccall(("read_healpix_map", libchealpix), Ptr{Cfloat},
+                (Cstring, Ref{Clong}, Ptr{UInt8}, Ptr{UInt8}),
+                filename, nside, coordsys, ordering)
+    HealpixMap(nside[], String(ordering[1:4]) == "RING"? ring : nest,
+               unsafe_wrap(Array, ptr, nside2npix(nside[]), true))
+end
+
 #################################################################################
 ## C++ wrapper methods
 #
