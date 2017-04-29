@@ -68,7 +68,7 @@ function HealpixMap(::Type{T}, nside::Int, order::Order) where T
     HealpixMap{T}(nside, order, zeros(T, nside2npix(nside)))
 end
 
-function HealpixMap{T}(order::Order, pixels::Vector{T})
+function HealpixMap(order::Order, pixels::Vector{T}) where T
     nside = npix2nside(length(pixels))
     HealpixMap(nside, order, pixels)
 end

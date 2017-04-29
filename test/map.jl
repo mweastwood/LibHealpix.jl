@@ -21,23 +21,20 @@
         zero_pixels = zeros(npix)
 
         for order in (ring, nest)
-            map = HealpixMap(Float64, nside, order)
+            map = @inferred HealpixMap(Float64, nside, order)
             @test map.nside === nside
             @test map.order === order
             @test map.pixels == zero_pixels
-            @inferred HealpixMap(Float64, nside, order)
 
-            map = HealpixMap(nside, order, pixels)
+            map = @inferred HealpixMap(nside, order, pixels)
             @test map.nside === nside
             @test map.order === order
             @test map.pixels == pixels
-            @inferred HealpixMap(nside, order, pixels)
 
-            map = HealpixMap(order, pixels)
+            map = @inferred HealpixMap(order, pixels)
             @test map.nside === nside
             @test map.order === order
             @test map.pixels == pixels
-            @inferred HealpixMap(order, pixels)
 
             @test_throws ArgumentError HealpixMap(nside, order, randn(npix+1))
         end

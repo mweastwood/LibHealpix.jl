@@ -33,7 +33,7 @@ end
 
 include("pixel.jl")
 include("map.jl")
-#include("alm.jl")
+include("alm.jl")
 #include("transforms.jl")
 #include("mollweide.jl")
 
