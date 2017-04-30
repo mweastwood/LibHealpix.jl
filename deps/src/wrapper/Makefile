@@ -25,15 +25,6 @@ all: $(SHARED_LIBRARY)
 wrapper.o: wrapper.cpp
 	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) wrapper.cpp
 
-#map.o: map.cpp
-#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) map.cpp
-#
-#alm.o: alm.cpp
-#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) alm.cpp
-#
-#transforms.o: transforms.cpp
-#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) transforms.cpp
-
 $(SHARED_LIBRARY): wrapper.o
 	$(CXX) -Wl,--no-as-needed $(PKG_CONFIG_LIBS) -Wl,-rpath,$(LIB_DIR) -shared -o $(SHARED_LIBRARY) wrapper.o
 

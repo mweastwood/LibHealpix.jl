@@ -38,7 +38,8 @@ Healpix_Map<T> construct_healpix_map(int nside, int order, T* pixels)
 {
     arr<double> arr_pixels(pixels, 12*nside*nside);
     Healpix_Ordering_Scheme ordering_scheme = static_cast<Healpix_Ordering_Scheme>(order);
-    Healpix_Map<double> map(arr_pixels, ordering_scheme);
+    auto map = Healpix_Map<double>();
+    map.Set(arr_pixels, ordering_scheme);
     return map;
 }
 
@@ -49,7 +50,7 @@ Alm<xcomplex<T> > construct_alm(int lmax, int mmax, complex<T>* coefficients)
     xcomplex<double>* reinterpreted_coefficients
         = reinterpret_cast<xcomplex<double>* >(coefficients);
     arr<xcomplex<double> > arr_coefficients(reinterpreted_coefficients, length);
-    Alm<xcomplex<double> > alm(lmax, mmax);
+    auto alm = Alm<xcomplex<double> >();
     alm.Set(arr_coefficients, lmax, mmax);
     return alm;
 }
@@ -66,7 +67,7 @@ extern "C" {
         map2alm_iter(map, alm, iterations, weights);
     }
 
-    void alm2map(int lmax, int mmax, complex<double>* coefficients, // Alm input
+    void alm2map(int lmax, int mmax, complex<double>* coefficients,
                  int nside, double* pixels)
     {
         auto alm = construct_alm(lmax, mmax, coefficients);
@@ -74,13 +75,16 @@ extern "C" {
         alm2map(alm, map);
     }
 
-    //double interpolate(Healpix_Map<double>* map, double theta, double phi) {
-    //    pointing ptg = pointing(theta, phi);
-    //    fix_arr<int,4> pix = fix_arr<int,4>();
-    //    fix_arr<double,4> wgt = fix_arr<double,4>();
-    //    map->get_interpol(ptg, pix, wgt);
-    //    return wgt[0]*(*map)[pix[0]] + wgt[1]*(*map)[pix[1]]
-    //            + wgt[2]*(*map)[pix[2]] + wgt[3]*(*map)[pix[3]];
-    //}
+    double interpolate(int nside, int order, double* pixels,
+                       double theta, double phi)
+    {
+        auto map = construct_healpix_map(nside, order, pixels);
+        auto ptg = pointing(theta, phi);
+        auto pix = fix_arr<int, 4>();    // the index of the 4 nearest pixels
+        auto wgt = fix_arr<double, 4>(); // the weights for the 4 nearest pixels
+        map->get_interpol(ptg, pix, wgt);
+        return wgt[0]*map[pix[0]] + wgt[1]*map[pix[1]]
+                + wgt[2]*map[pix[2]] + wgt[3]*map[pix[3]];
+    }
 }
 
