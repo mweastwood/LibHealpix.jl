@@ -60,11 +60,11 @@ struct HealpixMap{T<:AbstractFloat} <: AbstractVector{T}
     end
 end
 
-function HealpixMap(nside::Int, order::Order, pixels::Vector{T}) where T
+function HealpixMap(nside::Integer, order::Order, pixels::Vector{T}) where T
     HealpixMap{T}(nside, order, pixels)
 end
 
-function HealpixMap(::Type{T}, nside::Int, order::Order) where T
+function HealpixMap(::Type{T}, nside::Integer, order::Order) where T
     HealpixMap{T}(nside, order, zeros(T, nside2npix(nside)))
 end
 
@@ -123,6 +123,12 @@ function ang2pix(map::HealpixMap, θ, ϕ)
     else
         return ang2pix_nest(map.nside, θ, ϕ)
     end
+end
+
+function test(map::HealpixMap{Float64})
+    @show map.pixels
+    ccall(("test", libhealpixwrapper), Void, (Cint, Cint, Ptr{Float64},),
+          map.nside, map.order, map.pixels)
 end
 
 #function interpolate(map::HealpixMap, θ::Float64, ϕ::Float64)

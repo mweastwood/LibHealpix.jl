@@ -62,23 +62,23 @@ end
 
 # Implement the AbstractArray interface
 Base.length(alm::Alm) = length(alm.coefficients)
-Base.size(alm::Alm) = (length(map.coefficients),)
+Base.size(alm::Alm) = (length(alm.coefficients),)
 Base.getindex(alm::Alm, index::Int) = alm.coefficients[index]
 Base.setindex!(alm::Alm, value, index::Int) = alm.coefficients[index] = value
 Base.IndexStyle(::Alm) = Base.IndexLinear()
 Base.similar(alm::Alm{T}) where {T} = Alm(T, alm.lmax, alm.mmax)
 
-function Base.getindex(alm::Alm, l, m)
-    absm = abs(m)
-    output = alm[div(absm*(2lmax(alm)-absm+3),2)+l-absm+1]
-    ifelse(m ≥ 0, output, (-1)^absm*conj(output))
-end
-
-function Base.setindex!(alm::Alm, value, l, m)
-    absm = abs(m)
-    value = ifelse(m ≥ 0, value, (-1)^absm*conj(value))
-    alm[div(absm*(2lmax(alm)-absm+3),2)+l-absm+1] = value
-end
+#function Base.getindex(alm::Alm, l, m)
+#    absm = abs(m)
+#    output = alm[div(absm*(2alm.lmax-absm+3),2)+l-absm+1]
+#    ifelse(m ≥ 0, output, (-1)^absm*conj(output))
+#end
+#
+#function Base.setindex!(alm::Alm, value, l, m)
+#    absm = abs(m)
+#    value = ifelse(m ≥ 0, value, (-1)^absm*conj(value))
+#    alm[div(absm*(2alm.lmax-absm+3),2)+l-absm+1] = value
+#end
 
 #for op in (:+,:-)
 #    @eval function $op(lhs::Alm, rhs::Alm)

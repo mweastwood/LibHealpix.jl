@@ -1,4 +1,4 @@
-CFLAGS := -c -Wall -Werror -fpic -Wno-unknown-pragmas
+CFLAGS := -c -Wall -Werror -fpic -Wno-unknown-pragmas -std=c++0x
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
@@ -22,20 +22,23 @@ PKG_CONFIG_LIBS    := $(shell PKG_CONFIG_PATH=$(MY_PKG_CONFIG_PATH) pkg-config -
 
 all: $(SHARED_LIBRARY)
 
-map.o: map.cpp
-	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) map.cpp
+wrapper.o: wrapper.cpp
+	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) wrapper.cpp
 
-alm.o: alm.cpp
-	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) alm.cpp
+#map.o: map.cpp
+#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) map.cpp
+#
+#alm.o: alm.cpp
+#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) alm.cpp
+#
+#transforms.o: transforms.cpp
+#	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) transforms.cpp
 
-transforms.o: transforms.cpp
-	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) transforms.cpp
-
-$(SHARED_LIBRARY): map.o alm.o transforms.o
-	$(CXX) -Wl,--no-as-needed $(PKG_CONFIG_LIBS) -Wl,-rpath,$(LIB_DIR) -shared -o $(SHARED_LIBRARY) map.o alm.o transforms.o
+$(SHARED_LIBRARY): wrapper.o
+	$(CXX) -Wl,--no-as-needed $(PKG_CONFIG_LIBS) -Wl,-rpath,$(LIB_DIR) -shared -o $(SHARED_LIBRARY) wrapper.o
 
 clean:
-	-rm -f map.o alm.o transforms.o
+	-rm -f wrapper.o
 	-rm -f $(SHARED_LIBRARY)
 
 install:
