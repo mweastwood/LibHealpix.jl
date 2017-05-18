@@ -15,119 +15,146 @@
 
 @testset "map.jl" begin
     @testset "constructors" begin
-        nside = 4
-        npix = LibHealpix.nside2npix(nside)
-        pixels = randn(npix)
-        zero_pixels = zeros(npix)
+        for Map in (RingHealpixMap, NestHealpixMap)
+            nside = 4
+            npix = nside2npix(nside)
+            pixels = randn(npix)
+            zero_pixels = zeros(npix)
 
-        for order in (ring, nest)
-            map = @inferred HealpixMap(Float64, order, nside)
+            map = @inferred Map(Float64, nside)
             @test map.nside === nside
-            @test map.order === order
             @test map.pixels == zero_pixels
+            @test eltype(map) == Float64
 
-            map = @inferred HealpixMap(order, nside, pixels)
+            map = @inferred Map(pixels)
             @test map.nside === nside
-            @test map.order === order
             @test map.pixels == pixels
+            @test eltype(map) == Float64
 
-            map = @inferred HealpixMap(order, pixels)
-            @test map.nside === nside
-            @test map.order === order
-            @test map.pixels == pixels
-
-            @test_throws ArgumentError HealpixMap(order, nside, randn(npix+1))
+            @test_throws LibHealpixException Map(randn(npix+1))
         end
     end
 
     @testset "indexing" begin
-        nside = 4
-        npix = LibHealpix.nside2npix(nside)
-        pixels = randn(npix)
-        map = HealpixMap(ring, nside, copy(pixels))
+        for Map in (RingHealpixMap, NestHealpixMap)
+            nside = 4
+            npix = nside2npix(nside)
+            pixels = randn(npix)
+            map = Map(copy(pixels))
 
-        @test map[1] === pixels[1]
-        @test map[end] === pixels[end]
-        @test map[4:5:end] == pixels[4:5:end]
-        @test map[map .> 0] == pixels[pixels .> 0]
+            @test map[1] === pixels[1]
+            @test map[end] === pixels[end]
+            @test map[4:5:end] == pixels[4:5:end]
+            @test map[map .> 0] == pixels[pixels .> 0]
 
-        map[1] = 2
-        @test map[1] == 2
-        map[end] = 2
-        @test map[end] == 2
-        map[4:5:end] = 2
-        @test all(map[4:5:end] .== 2)
-        map[map .> 0] = 2
-        @test all(map[map .> 0] .== 2)
+            map[1] = 2
+            @test map[1] == 2
+            map[end] = 2
+            @test map[end] == 2
+            map[4:5:end] = 2
+            @test all(map[4:5:end] .== 2)
+            map[map .> 0] = 2
+            @test all(map[map .> 0] .== 2)
+        end
     end
 
     @testset "arithmetic" begin
+        for Map in (RingHealpixMap, NestHealpixMap)
+            nside = 4
+            npix = nside2npix(nside)
+            a = randn()
+            map1 = Map(randn( npix))
+            map2 = Map(randn( npix))
+            map3 = Map(randn(4npix))
+
+            @test map1 + map2 == Map(nside, map1.pixels + map2.pixels)
+            @test map1 - map2 == Map(nside, map1.pixels - map2.pixels)
+            @test map1 .* map2 == Map(nside, map1.pixels .* map2.pixels)
+            @test map1 ./ map2 == Map(nside, map1.pixels ./ map2.pixels)
+            @test_throws DimensionMismatch map1 * map2
+            @test_throws DimensionMismatch map1 / map2
+            @inferred map1 + map2
+            @inferred map1 - map2
+
+            @test_throws LibHealpixException map1 + map3
+            @test_throws LibHealpixException map1 - map3
+
+            @test map1 + a == Map(nside, map1.pixels + a)
+            @test map1 - a == Map(nside, map1.pixels - a)
+            @test map1 * a == Map(nside, map1.pixels * a)
+            @test map1 / a == Map(nside, map1.pixels / a)
+            @test a + map1 == Map(nside, a + map1.pixels)
+            @test a - map1 == Map(nside, a - map1.pixels)
+            @test a * map1 == Map(nside, a * map1.pixels)
+            @test a ./ map1 == Map(nside, a ./ map1.pixels)
+            @inferred map1 + a
+            @inferred map1 - a
+            @inferred map1 * a
+            @inferred map1 / a
+            @inferred a + map1
+            @inferred a - map1
+            @inferred a * map1
+            @inferred a ./ map1
+
+            @test mean([map1, map2]) == (map1 + map2)/2
+        end
+
         nside = 4
-        npix = LibHealpix.nside2npix(nside)
-        a = randn()
-        map1 = HealpixMap(ring,  nside, randn( npix))
-        map2 = HealpixMap(ring,  nside, randn( npix))
-        map3 = HealpixMap(ring, 2nside, randn(4npix))
-        map4 = HealpixMap(nest,  nside, randn( npix))
-
-        @test map1 + map2 == HealpixMap(ring, nside, map1.pixels + map2.pixels)
-        @test map1 - map2 == HealpixMap(ring, nside, map1.pixels - map2.pixels)
-        @test map1 .* map2 == HealpixMap(ring, nside, map1.pixels .* map2.pixels)
-        @test map1 ./ map2 == HealpixMap(ring, nside, map1.pixels ./ map2.pixels)
-        @test_throws DimensionMismatch map1 * map2
-        @test_throws DimensionMismatch map1 / map2
-        @inferred map1 + map2
-        @inferred map1 - map2
-
-        @test_throws DimensionMismatch map1 + map3
-        @test_throws DimensionMismatch map1 - map3
-        @test_throws ArgumentError map1 + map4
-        @test_throws ArgumentError map1 - map4
-
-        @test map1 + a == HealpixMap(ring, nside, map1.pixels + a)
-        @test map1 - a == HealpixMap(ring, nside, map1.pixels - a)
-        @test map1 * a == HealpixMap(ring, nside, map1.pixels * a)
-        @test map1 / a == HealpixMap(ring, nside, map1.pixels / a)
-        @test a + map1 == HealpixMap(ring, nside, a + map1.pixels)
-        @test a - map1 == HealpixMap(ring, nside, a - map1.pixels)
-        @test a * map1 == HealpixMap(ring, nside, a * map1.pixels)
-        @test a ./ map1 == HealpixMap(ring, nside, a ./ map1.pixels)
-        @inferred map1 + a
-        @inferred map1 - a
-        @inferred map1 * a
-        @inferred map1 / a
-        @inferred a + map1
-        @inferred a - map1
-        @inferred a * map1
-        @inferred a ./ map1
-
-        @test mean([map1, map2]) == (map1 + map2)/2
+        npix = nside2npix(nside)
+        map1 = RingHealpixMap(randn(npix))
+        map2 = NestHealpixMap(randn(npix))
+        @test_throws LibHealpixException map1 + map2
+        @test_throws LibHealpixException map1 - map2
     end
 
-    @testset "FITS I/O" begin
-        nside = 16
-        filename = tempname()*".fits"
-        map = HealpixMap(Float32, ring, nside)
-        for i = 1:length(map)
-            map[i] = rand()
-        end
-        writehealpix(filename, map)
-        newmap = readhealpix(filename)
-        @test map == newmap
-        @test_throws ErrorException writehealpix(filename, map)
-        @test writehealpix(filename, map, replace=true) == map
+    @testset "ang2pix / pix2ang / vec2pix / pix2vec" begin
+        for nside in (32, 128, 512)
+            map = RingHealpixMap(Float64, nside)
+            @test ang2pix(map, 0, 0) === ang2pix_ring(nside, 0, 0)
+            @test ang2pix(map, 1, 1) === ang2pix_ring(nside, 1, 1)
+            @test pix2ang(map, 1) === pix2ang_ring(nside, 1)
+            @test pix2ang(map, 100) === pix2ang_ring(nside, 100)
+            @test vec2pix(map, [0, 0, 1]) === vec2pix_ring(nside, [0, 0, 1])
+            @test vec2pix(map, [0, 1, 0]) === vec2pix_ring(nside, [0, 1, 0])
+            @test pix2vec(map, 1) === pix2vec_ring(nside, 1)
+            @test pix2vec(map, 100) === pix2vec_ring(nside, 100)
 
-        filename = tempname()*".fits"
-        map = HealpixMap(Float32, ring, nside)
-        for i = 1:length(map)
-            map[i] = rand()
+            map = NestHealpixMap(Float64, nside)
+            @test ang2pix(map, 0, 0) === ang2pix_nest(nside, 0, 0)
+            @test ang2pix(map, 1, 1) === ang2pix_nest(nside, 1, 1)
+            @test pix2ang(map, 1) === pix2ang_nest(nside, 1)
+            @test pix2ang(map, 100) === pix2ang_nest(nside, 100)
+            @test vec2pix(map, [0, 0, 1]) === vec2pix_nest(nside, [0, 0, 1])
+            @test vec2pix(map, [0, 1, 0]) === vec2pix_nest(nside, [0, 1, 0])
+            @test pix2vec(map, 1) === pix2vec_nest(nside, 1)
+            @test pix2vec(map, 100) === pix2vec_nest(nside, 100)
         end
-        writehealpix(filename, map)
-        newmap = readhealpix(filename)
-        @test map == newmap
-        @test_throws ErrorException writehealpix(filename, map)
-        @test writehealpix(filename, map, replace=true) == map
     end
+
+    #@testset "FITS I/O" begin
+    #    nside = 16
+    #    filename = tempname()*".fits"
+    #    map = HealpixMap(Float32, ring, nside)
+    #    for i = 1:length(map)
+    #        map[i] = rand()
+    #    end
+    #    writehealpix(filename, map)
+    #    newmap = readhealpix(filename)
+    #    @test map == newmap
+    #    @test_throws ErrorException writehealpix(filename, map)
+    #    @test writehealpix(filename, map, replace=true) == map
+
+    #    filename = tempname()*".fits"
+    #    map = HealpixMap(Float32, ring, nside)
+    #    for i = 1:length(map)
+    #        map[i] = rand()
+    #    end
+    #    writehealpix(filename, map)
+    #    newmap = readhealpix(filename)
+    #    @test map == newmap
+    #    @test_throws ErrorException writehealpix(filename, map)
+    #    @test writehealpix(filename, map, replace=true) == map
+    #end
 
     #let
     #    for order in (LibHealpix.ring, LibHealpix.nest)

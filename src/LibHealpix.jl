@@ -26,7 +26,12 @@ export nest2ring, ring2nest
 export ang2pix_nest, ang2pix_ring, pix2ang_nest, pix2ang_ring
 export vec2pix_nest, vec2pix_ring, pix2vec_nest, pix2vec_ring
 
+# map.jl
 export HealpixMap, RingHealpixMap, NestHealpixMap
+export ang2pix, pix2ang, vec2pix, pix2vec
+export isring, isnest
+
+
 export writehealpix, readhealpix
 
 export Alm
