@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2016 Michael Eastwood
+# Copyright (c) 2015-2017 Michael Eastwood
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
 """
     mollweide(map::HealpixMap)
 
-Create an image of the map through the use of a Mollweide projection.
-The image will be zero in the region outside of the projection area.
+Create an image of the map through the use of a Mollweide projection.  The image will be zero in the
+region outside of the projection area.
 """
 function mollweide(map::HealpixMap)
     N = 2nring(map)
-    img = zeros(2N,N)
+    img = zeros(2N, N)
     δ = 2/N
-    x = linspace(-2+δ/2,2-δ/2,2N)
-    y = linspace(-1+δ/2,1-δ/2,1N)
+    x = linspace(-2+δ/2, 2-δ/2, 2N)
+    y = linspace(-1+δ/2, 1-δ/2, 1N)
     for j = 1:N
         sinΩ = y[j]
         cosΩ = sqrt(1-sinΩ^2)
@@ -39,6 +39,6 @@ function mollweide(map::HealpixMap)
             img[i,j] = map[pix]
         end
     end
-    img'
+    img.'
 end
 

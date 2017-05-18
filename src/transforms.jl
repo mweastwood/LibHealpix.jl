@@ -13,20 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function map2alm(map::HealpixMap, lmax::Int, mmax::Int; iterations::Int=0)
-    map.order == ring || error("The input HealpixMap must have ring ordering.")
-    coefficients = zeros(Complex128, ncoeff(lmax, mmax))
-    ccall(("map2alm", libhealpixwrapper), Void,
-          (Cint, Cint, Ptr{Float64}, Cint, Cint, Cint, Ptr{Complex128}),
-          map.nside, map.order, map.pixels, lmax, mmax, iterations, coefficients)
-    Alm(lmax, mmax, coefficients)
-end
+for (T, suffix) in ((Float32, "_float"), (Float64, "_double"))
+    @eval function map2alm(map::RingHealpixMap{$T}, lmax::Int, mmax::Int; iterations::Int=0)
+        coefficients = zeros(Complex{$T}, ncoeff(lmax, mmax))
+        ccall(("map2alm"*suffix, libhealpixwrapper), Void,
+              (Cint, Cint, Ptr{$T}, Cint, Cint, Cint, Ptr{Complex{$T}}),
+              map.nside, map.order, map.pixels, lmax, mmax, iterations, coefficients)
+        Alm(lmax, mmax, coefficients)
+    end
 
-function alm2map(alm::Alm, nside::Int)
-    pixels = zeros(Float64, nside2npix(nside))
-    ccall(("alm2map", libhealpixwrapper), Void,
-          (Cint, Cint, Ptr{Complex128}, Cint, Ptr{Float64}),
-          alm.lmax, alm.mmax, alm.coefficients, nside, pixels)
-    HealpixMap(nside, ring, pixels)
+    @eval function alm2map(alm::Alm{Complex{$T}}, nside::Int)
+        pixels = zeros($T, nside2npix(nside))
+        ccall(("alm2map"*suffix, libhealpixwrapper), Void,
+              (Cint, Cint, Ptr{Complex{$T}}, Cint, Ptr{$T}),
+              alm.lmax, alm.mmax, alm.coefficients, nside, pixels)
+        RingHealpixMap(nside, pixels)
+    end
 end
 

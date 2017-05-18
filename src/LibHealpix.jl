@@ -17,25 +17,47 @@ __precompile__()
 
 module LibHealpix
 
-export HealpixMap, ring, nest
-export Alm
+export LibHealpixException
+
+# pixel.jl
+export nside2npix, npix2nside, nside2nring
+export ang2vec, vec2ang
+export nest2ring, ring2nest
+export ang2pix_nest, ang2pix_ring, pix2ang_nest, pix2ang_ring
+export vec2pix_nest, vec2pix_ring, pix2vec_nest, pix2vec_ring
+
+export HealpixMap, RingHealpixMap, NestHealpixMap
 export writehealpix, readhealpix
+
+export Alm
 export map2alm, alm2map
 export mollweide
 
 using StaticArrays
+using FITSIO.Libcfitsio
 
 if isfile(joinpath(dirname(@__FILE__),"..","deps","deps.jl"))
     include("../deps/deps.jl")
 else
-    error("LibHealpix not properly installed. Please run Pkg.build(\"LibHealpix\")")
+    error("LibHealpix is not properly installed. Please run Pkg.build(\"LibHealpix\")")
+end
+
+struct LibHealpixException <: Exception
+    message :: String
+end
+
+err(message) = throw(LibHealpixException(message))
+
+function Base.show(io::IO, exception::LibHealpixException)
+    print(io, "LibHealpixException: ", exception.message)
 end
 
 include("pixel.jl")
 include("map.jl")
 include("alm.jl")
 include("transforms.jl")
-#include("mollweide.jl")
+include("mollweide.jl")
+include("io.jl")
 
 end
 

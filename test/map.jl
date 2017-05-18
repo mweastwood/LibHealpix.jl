@@ -21,12 +21,12 @@
         zero_pixels = zeros(npix)
 
         for order in (ring, nest)
-            map = @inferred HealpixMap(Float64, nside, order)
+            map = @inferred HealpixMap(Float64, order, nside)
             @test map.nside === nside
             @test map.order === order
             @test map.pixels == zero_pixels
 
-            map = @inferred HealpixMap(nside, order, pixels)
+            map = @inferred HealpixMap(order, nside, pixels)
             @test map.nside === nside
             @test map.order === order
             @test map.pixels == pixels
@@ -36,7 +36,7 @@
             @test map.order === order
             @test map.pixels == pixels
 
-            @test_throws ArgumentError HealpixMap(nside, order, randn(npix+1))
+            @test_throws ArgumentError HealpixMap(order, nside, randn(npix+1))
         end
     end
 
@@ -44,7 +44,7 @@
         nside = 4
         npix = LibHealpix.nside2npix(nside)
         pixels = randn(npix)
-        map = HealpixMap(nside, ring, copy(pixels))
+        map = HealpixMap(ring, nside, copy(pixels))
 
         @test map[1] === pixels[1]
         @test map[end] === pixels[end]
@@ -65,15 +65,15 @@
         nside = 4
         npix = LibHealpix.nside2npix(nside)
         a = randn()
-        map1 = HealpixMap( nside, ring, randn( npix))
-        map2 = HealpixMap( nside, ring, randn( npix))
-        map3 = HealpixMap(2nside, ring, randn(4npix))
-        map4 = HealpixMap( nside, nest, randn( npix))
+        map1 = HealpixMap(ring,  nside, randn( npix))
+        map2 = HealpixMap(ring,  nside, randn( npix))
+        map3 = HealpixMap(ring, 2nside, randn(4npix))
+        map4 = HealpixMap(nest,  nside, randn( npix))
 
-        @test map1 + map2 == HealpixMap(nside, ring, map1.pixels + map2.pixels)
-        @test map1 - map2 == HealpixMap(nside, ring, map1.pixels - map2.pixels)
-        @test map1 .* map2 == HealpixMap(nside, ring, map1.pixels .* map2.pixels)
-        @test map1 ./ map2 == HealpixMap(nside, ring, map1.pixels ./ map2.pixels)
+        @test map1 + map2 == HealpixMap(ring, nside, map1.pixels + map2.pixels)
+        @test map1 - map2 == HealpixMap(ring, nside, map1.pixels - map2.pixels)
+        @test map1 .* map2 == HealpixMap(ring, nside, map1.pixels .* map2.pixels)
+        @test map1 ./ map2 == HealpixMap(ring, nside, map1.pixels ./ map2.pixels)
         @test_throws DimensionMismatch map1 * map2
         @test_throws DimensionMismatch map1 / map2
         @inferred map1 + map2
@@ -84,14 +84,14 @@
         @test_throws ArgumentError map1 + map4
         @test_throws ArgumentError map1 - map4
 
-        @test map1 + a == HealpixMap(nside, ring, map1.pixels + a)
-        @test map1 - a == HealpixMap(nside, ring, map1.pixels - a)
-        @test map1 * a == HealpixMap(nside, ring, map1.pixels * a)
-        @test map1 / a == HealpixMap(nside, ring, map1.pixels / a)
-        @test a + map1 == HealpixMap(nside, ring, a + map1.pixels)
-        @test a - map1 == HealpixMap(nside, ring, a - map1.pixels)
-        @test a * map1 == HealpixMap(nside, ring, a * map1.pixels)
-        @test a ./ map1 == HealpixMap(nside, ring, a ./ map1.pixels)
+        @test map1 + a == HealpixMap(ring, nside, map1.pixels + a)
+        @test map1 - a == HealpixMap(ring, nside, map1.pixels - a)
+        @test map1 * a == HealpixMap(ring, nside, map1.pixels * a)
+        @test map1 / a == HealpixMap(ring, nside, map1.pixels / a)
+        @test a + map1 == HealpixMap(ring, nside, a + map1.pixels)
+        @test a - map1 == HealpixMap(ring, nside, a - map1.pixels)
+        @test a * map1 == HealpixMap(ring, nside, a * map1.pixels)
+        @test a ./ map1 == HealpixMap(ring, nside, a ./ map1.pixels)
         @inferred map1 + a
         @inferred map1 - a
         @inferred map1 * a
@@ -107,7 +107,7 @@
     @testset "FITS I/O" begin
         nside = 16
         filename = tempname()*".fits"
-        map = HealpixMap(Float32, nside, ring)
+        map = HealpixMap(Float32, ring, nside)
         for i = 1:length(map)
             map[i] = rand()
         end
@@ -118,7 +118,7 @@
         @test writehealpix(filename, map, replace=true) == map
 
         filename = tempname()*".fits"
-        map = HealpixMap(Float32, nside, nest)
+        map = HealpixMap(Float32, ring, nside)
         for i = 1:length(map)
             map[i] = rand()
         end

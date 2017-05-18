@@ -13,6 +13,109 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    nside2npix(nside)
+
+Compute the number of pixels in a Healpix map with the given value of `nside`.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+
+**Usage:**
+
+```jldoctest
+julia> nside2npix(4)
+192
+
+julia> nside2npix(256)
+786432
+```
+
+**See Also:** [`npix2nside`](@ref), [`nside2nring`](@ref)
+"""
+Base.@pure nside2npix(nside::Integer) = 12nside*nside
+
+"""
+    npix2nside(npix)
+
+Compute the value of the `nside` parameter for a Healpix map with the given number of pixels.
+
+**Arguments:**
+
+- `npix` - the number of pixels in the map
+
+**Usage:**
+
+```jldoctest
+julia> npix2nside(192)
+4
+
+julia> npix2nside(786432)
+256
+```
+
+**See Also:** [`nside2npix`](@ref), [`nside2nring`](@ref)
+"""
+function npix2nside(npix::Integer)
+    nside = isqrt(npix÷12)
+    nside2npix(nside) == npix || err("the given number of pixels is invalid")
+    nside
+end
+
+"""
+    nside2nring(nside)
+
+Compute the number of equal latitude rings in the Healpix map with the given value of `nside`.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+
+**Usage:**
+
+```jldoctest
+julia> nside2nring(4)
+15
+
+julia> nside2nring(256)
+1023
+```
+
+**See Also:** [`nside2npix`](@ref), [`npix2nside`](@ref)
+"""
+Base.@pure nside2nring(nside::Integer) = 4nside - 1
+
+"""
+    UnitVector
+
+This struct represents a unit 3-vector. The normalization requirement is enforced by the inner
+constructor.
+
+**Fields:**
+
+- `x` - the `x` component of the unit vector
+- `y` - the `y` component of the unit vector
+- `z` - the `z` component of the unit vector
+"""
+struct UnitVector <: FieldVector{3, Float64}
+    x :: Float64
+    y :: Float64
+    z :: Float64
+    function UnitVector(x, y, z)
+        normalization = hypot(x, y, z)
+        normalization > 0 || err("vector must not have zero norm")
+        new(x/normalization, y/normalization, z/normalization)
+    end
+end
+
+function UnitVector(vec::AbstractVector)
+    length(vec) == 3 || err("length of a unit vector must be 3")
+    UnitVector(vec[1], vec[2], vec[3])
+end
+
+UnitVector(vec::UnitVector) = vec
+
 doc"""
     verify_angles(θ, ϕ)
 
@@ -22,45 +125,38 @@ enforces these expectations.
 function verify_angles(θ, ϕ)
     θ_float = float(θ)
     ϕ_float = float(ϕ)
-    0 ≤ θ_float ≤ π || throw(DomainError())
+    0 ≤ θ_float ≤ π || err("spherical coordinates require 0 ≤ θ ≤ π")
     ϕ_float = mod2pi(ϕ_float)
     θ_float, ϕ_float
 end
 
-"""
-    verify_unit_vector(vec)
+doc"""
+    ang2vec(theta, phi)
 
-Check that the vector has length 3 and normalize the vector.
-"""
-function verify_unit_vector(vec)
-    length(vec) == 3 || throw(ArgumentError("length of a unit vector must be 3"))
-    normalization = norm(vec)
-    normalization > 0 || throw(ArgumentError("vector must not have zero norm"))
-    SVector(vec[1]/normalization, vec[2]/normalization, vec[3]/normalization)
-end
+Compute the Cartesian unit vector to the spherical coordinates $(θ, ϕ)$.
 
-"""
-    nside2npix(nside)
+**Arguments:**
 
-Compute the number of pixels in a Healpix map with the given value of nside.
-"""
-Base.@pure nside2npix(nside::Integer) = 12*nside*nside
+- `theta` - the inclination angle $θ$
+- `phi` - the azimuthal angle $ϕ$
 
-"""
-    npix2nside(npix)
+**Usage:**
 
-Compute the value of the parameter nside for a Healpix map with the given number of pixels.
-"""
-function npix2nside(npix::Integer)
-    nside = isqrt(npix÷12)
-    nside2npix(nside) == npix || throw(ArgumentError("the given number of pixels is invalid"))
-    nside
-end
+```jldoctest
+julia> ang2vec(0, 0)
+3-element LibHealpix.UnitVector:
+ 0.0
+ 0.0
+ 1.0
 
-"""
-    ang2vec(θ, ϕ)
+julia> ang2vec(π/2, π/2)
+3-element LibHealpix.UnitVector:
+ 6.12323e-17
+ 1.0
+ 6.12323e-17
+```
 
-Compute the Cartesian unit vector to the spherical coordinates (θ, ϕ).
+**See Also:** [`vec2ang`](@ref)
 """
 function ang2vec(θ, ϕ)
     θ′, ϕ′ = verify_angles(θ, ϕ)
@@ -68,18 +164,37 @@ function ang2vec(θ, ϕ)
     x = s*cos(ϕ′)
     y = s*sin(ϕ′)
     z = cos(θ′)
-    SVector(x, y, z)
+    UnitVector(x, y, z)
 end
 
-"""
+doc"""
     vec2ang(vec)
 
-Compute the spherical coordinates (θ, ϕ) from the given vector.
+Compute the spherical coordinates $(θ, ϕ)$ from the given unit vector.
+
+**Arguments:**
+
+- `vec` - the input Cartesian unit vector
+
+**Usage:**
+
+```jldoctest
+julia> vec2ang([1, 0, 0])
+(1.5707963267948966, 0.0)
+
+julia> vec2ang([0, 1, 0])
+(1.5707963267948966, 1.5707963267948966)
+
+julia> vec2ang([0, 0, 1])
+(0.0, 0.0)
+```
+
+**See Also:** [`ang2vec`](@ref)
 """
 function vec2ang(vec)
-    vec = verify_unit_vector(vec)
-    θ = acos(vec[3])
-    ϕ = atan2(vec[2], vec[1])
+    vec′ = UnitVector(vec)
+    θ = acos(vec′.z)
+    ϕ = atan2(vec′.y, vec′.x)
     ϕ = mod2pi(ϕ)
     θ, ϕ
 end
@@ -101,11 +216,11 @@ for T in types
     end
 
     for f in (:ang2pix_nest, :ang2pix_ring)
-        @eval function $f(nside::$T, θ::Cdouble, ϕ::Cdouble)
-            θ, ϕ = verify_angles(θ, ϕ)
+        @eval function $f(nside::$T, θ::Real, ϕ::Real)
+            θ′, ϕ′ = verify_angles(θ, ϕ)
             ipixptr = Ref{$T}(0)
             ccall(($(funcname(f)), libchealpix), Void, ($T, Cdouble, Cdouble, Ref{$T}),
-                  nside, θ, ϕ, ipixptr)
+                  nside, θ′, ϕ′, ipixptr)
             ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
         end
     end
@@ -122,10 +237,11 @@ for T in types
     end
 
     for f in (:vec2pix_nest, :vec2pix_ring)
-        @eval function $f(nside::$T, vec::AbstractVector{Cdouble})
+        @eval function $f(nside::$T, vec::AbstractVector)
+            vec′ = UnitVector(vec)
             ipixptr = Ref{$T}(0)
             ccall(($(funcname(f)), libchealpix), Void, ($T, Ptr{Cdouble}, Ref{$T}),
-                  nside, vec, ipixptr)
+                  nside, vec′, ipixptr)
             ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
         end
     end
@@ -133,11 +249,275 @@ for T in types
     for f in (:pix2vec_nest, :pix2vec_ring)
         @eval function $f(nside::$T, ipix::$T)
             ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
-            vec = Ref{SVector{3, Cdouble}}(SVector(0, 0, 0))
+            vec = Ref{UnitVector}(UnitVector(0, 0, 1))
             ccall(($(funcname(f)), libchealpix), Void, ($T, $T, Ptr{Cdouble}),
                   nside, ipix, vec)
             vec[]
         end
     end
 end
+
+"""
+    nest2ring(nside, ipix)
+
+Convert the given pixel index from the nested to the ring indexing scheme.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (nested scheme)
+
+**Usage:**
+
+```jldoctest
+julia> nest2ring(256, 1)
+391809
+
+julia> nest2ring(256, 2)
+390785
+```
+
+**See Also:** [`ring2nest`](@ref)
+"""
+nest2ring
+
+"""
+    ring2nest(nside, ipix)
+
+Convert the given pixel index from the ring to the nested indexing scheme.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (ring scheme)
+
+**Usage:**
+
+```jldoctest
+julia> ring2nest(256, 1)
+65536
+
+julia> ring2nest(256, 2)
+131072
+```
+
+**See Also:** [`nest2ring`](@ref)
+"""
+ring2nest
+
+doc"""
+    ang2pix_nest(nside, theta, phi)
+
+Compute the pixel index (in the nested scheme) that contains the point on the sphere given by the
+spherical coordinates $(θ, ϕ)$.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `theta` - the inclination angle $θ$
+- `phi` - the azimuthal angle $ϕ$
+
+**Usage:**
+
+```jldoctest
+julia> ang2pix_nest(256, 0, 0)
+65536
+
+julia> ang2pix_nest(256, π/2, π/2)
+354987
+```
+
+**See Also:** [`ang2pix_ring`](@ref), [`pix2ang_nest`](@ref), [`pix2ang_ring`](@ref)
+"""
+ang2pix_nest
+
+doc"""
+    ang2pix_ring(nside, theta, phi)
+
+Compute the pixel index (in the ring scheme) that contains the point on the sphere given by the
+spherical coordinates $(θ, ϕ)$.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `theta` - the inclination angle $θ$
+- `phi` - the azimuthal angle $ϕ$
+
+**Usage:**
+
+```jldoctest
+julia> ang2pix_ring(256, 0, 0)
+1
+
+julia> ang2pix_ring(256, π/2, π/2)
+392961
+```
+
+**See Also:** [`ang2pix_nest`](@ref), [`pix2ang_nest`](@ref), [`pix2ang_ring`](@ref)
+"""
+ang2pix_ring
+
+doc"""
+    pix2ang_nest(nside, ipix)
+
+Compute the spherical coordinates $(θ, ϕ)$ corresponding to the given pixel center.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (nested scheme)
+
+**Usage:**
+
+```jldoctest
+julia> pix2ang_nest(256, 1)
+(1.5681921571847817, 0.7853981633974483)
+
+julia> pix2ang_nest(256, 2)
+(1.5655879699137618, 0.7884661249732196)
+```
+
+**See Also:** [`pix2ang_ring`](@ref), [`ang2pix_nest`](@ref), [`ang2pix_ring`](@ref)
+"""
+pix2ang_nest
+
+doc"""
+    pix2ang_ring(nside, ipix)
+
+Compute the spherical coordinates $(θ, ϕ)$ corresponding to the given pixel center.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (ring scheme)
+
+**Usage:**
+
+```jldoctest
+julia> pix2ang_ring(256, 1)
+(0.0031894411211228764, 0.7853981633974483)
+
+julia> pix2ang_ring(256, 2)
+(0.0031894411211228764, 2.356194490192345)
+```
+
+**See Also:** [`pix2ang_nest`](@ref), [`ang2pix_nest`](@ref), [`ang2pix_ring`](@ref)
+"""
+pix2ang_ring
+
+"""
+    vec2pix_nest(nside, vec)
+
+Compute the pixel index (in the nested scheme) that contains the point on the sphere given by the
+Cartesian unit vector.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `vec` - the input Cartesian unit vector
+
+**Usage:**
+
+```jldoctest
+julia> vec2pix_nest(256, [1, 0, 0])
+289451
+
+julia> vec2pix_nest(256, [0, 1, 0])
+354987
+
+julia> vec2pix_nest(256, [0, 0, 1])
+65536
+```
+
+**See Also:** [`vec2pix_ring`](@ref), [`pix2vec_nest`](@ref), [`pix2vec_ring`](@ref)
+"""
+vec2pix_nest
+
+"""
+    vec2pix_ring(nside, vec)
+
+Compute the pixel index (in the ring scheme) that contains the point on the sphere given by the
+Cartesian unit vector.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `vec` - the input Cartesian unit vector
+
+**Usage:**
+
+```jldoctest
+julia> vec2pix_ring(256, [1, 0, 0])
+392705
+
+julia> vec2pix_ring(256, [0, 1, 0])
+392961
+
+julia> vec2pix_ring(256, [0, 0, 1])
+1
+```
+
+**See Also:** [`vec2pix_nest`](@ref), [`pix2vec_nest`](@ref), [`pix2vec_ring`](@ref)
+"""
+vec2pix_ring
+
+"""
+    pix2vec_nest(nside, ipix)
+
+Compute the Cartesian unit vector corresponding to the given pixel center.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (nested scheme)
+
+**Usage:**
+
+```jldoctest
+julia> pix2vec_nest(256, 1)
+3-element LibHealpix.UnitVector:
+ 0.707104
+ 0.707104
+ 0.00260417
+
+julia> pix2vec_nest(256, 2)
+3-element LibHealpix.UnitVector:
+ 0.704925
+ 0.709263
+ 0.00520833
+```
+
+**See Also:** [`pix2vec_ring`](@ref), [`vec2pix_nest`](@ref), [`vec2pix_ring`](@ref)
+"""
+pix2vec_nest
+
+"""
+    pix2vec_ring(nside, ipix)
+
+Compute the Cartesian unit vector corresponding to the given pixel center.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ipix` - the pixel index (ring scheme)
+
+**Usage:**
+
+```jldoctest
+julia> pix2vec_ring(256, 1)
+3-element LibHealpix.UnitVector:
+ 0.00225527
+ 0.00225527
+ 0.999995
+
+julia> pix2vec_ring(256, 2)
+3-element LibHealpix.UnitVector:
+ -0.00225527
+  0.00225527
+  0.999995
+```
+
+**See Also:** [`pix2vec_nest`](@ref), [`vec2pix_nest`](@ref), [`vec2pix_ring`](@ref)
+"""
+pix2vec_ring
 
