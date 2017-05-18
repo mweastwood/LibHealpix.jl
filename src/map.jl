@@ -330,18 +330,41 @@ for operator in (:*, :/)
     end
 end
 
-#function interpolate(map::HealpixMap, θ::Float64, ϕ::Float64)
-#    interpolate(to_cxx(map), θ, ϕ)
-#end
+function interpolate(map::HealpixMap{Float32}, θ, ϕ)
+    ccall(("interpolate_float", libhealpixwrapper), Cfloat,
+          (Cint, Cint, Ptr{Cfloat}, Cdouble, Cdouble),
+          map.nside, ordering(map), map.pixels, θ, ϕ)
+end
 
-#function interpolate(map::HealpixMap, θlist::Vector, ϕlist::Vector)
-#    map_cxx = to_cxx(map)
-#    Float64[interpolate(map_cxx, Float64(θ), Float64(ϕ)) for (θ, ϕ) in zip(θlist, ϕlist)]
-#end
-#function interpolate(map, θ::Float64, ϕ::Float64)
-#    θ, ϕ = verify_angles(θ, ϕ)
-#    output = ccall(("interpolate", libhealpixwrapper), Cdouble,
-#                   (Ptr{Void}, Cdouble, Cdouble), map_cxx, θ, ϕ)
-#    output
-#end
+function interpolate(map::HealpixMap{Float64}, θ, ϕ)
+    ccall(("interpolate_double", libhealpixwrapper), Cdouble,
+          (Cint, Cint, Ptr{Cdouble}, Cdouble, Cdouble),
+          map.nside, ordering(map), map.pixels, θ, ϕ)
+end
+
+doc"""
+    interpolate(map, theta, phi)
+
+Linearly interpolate the Healpix map at the given spherical coordinates $(θ, ϕ)$.
+
+**Arguments:**
+
+- `map` - the input Healpix map
+- `theta` - the inclination angle $θ$
+- `phi` - the azimuthal angle $ϕ$
+
+**Usage:**
+
+```jldoctest
+julia> healpixmap = RingHealpixMap(Float64, 256)
+       for idx = 1:length(healpixmap)
+           healpixmap[idx] = idx
+       end
+       LibHealpix.interpolate(healpixmap, 0, 0)
+2.5
+```
+
+**See Also:** [`ang2pix`](@ref)
+"""
+interpolate
 

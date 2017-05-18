@@ -131,6 +131,18 @@
         end
     end
 
+    @testset "interpolate" begin
+        for T in (Float32, Float64)
+            map = RingHealpixMap(T, 4)
+            map[1] = rand(T)
+            map[2] = rand(T)
+            map[3] = rand(T)
+            map[4] = rand(T)
+            expected = (map[1] + map[2] + map[3] + map[4])/4
+            @test LibHealpix.interpolate(map, 0, 0) === expected
+        end
+    end
+
     #@testset "FITS I/O" begin
     #    nside = 16
     #    filename = tempname()*".fits"
@@ -154,26 +166,6 @@
     #    @test map == newmap
     #    @test_throws ErrorException writehealpix(filename, map)
     #    @test writehealpix(filename, map, replace=true) == map
-    #end
-
-    #let
-    #    for order in (LibHealpix.ring, LibHealpix.nest)
-    #        map = HealpixMap(Float64, 512, order)
-    #        rand!(map.pixels)
-    #        map′ = LibHealpix.to_julia(LibHealpix.to_cxx(map))
-    #        @test map == map′
-    #    end
-    #end
-
-    #let
-    #    map = HealpixMap(Float64, 4)
-    #    map[1] = rand()
-    #    map[2] = rand()
-    #    map[3] = rand()
-    #    map[4] = rand()
-    #    expected = (map[1] + map[2] + map[3] + map[4])/4
-    #    @test LibHealpix.interpolate(map, 0.0, 0.0) == expected
-    #    @test LibHealpix.interpolate(map, [0.0, 0.0], [0.0, 0.0]) == [expected, expected]
     #end
 
 end
