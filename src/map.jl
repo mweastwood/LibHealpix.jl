@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    abstract type HealpixMap{T<:AbstractFloat} <: AbstractVector{T}
+    abstract type HealpixMap{T<:Number} <: AbstractVector{T}
 
 This abstract type represents a Healpix equal-area pixelization of the sphere.
 
@@ -24,10 +24,10 @@ This abstract type represents a Healpix equal-area pixelization of the sphere.
     latitude. This ordering should be used for performing spherical harmonic transforms.
 - [`NestHealpixMap`](@ref) - a `HealpixMap` where nearby pixels also tend to be nearby in memory.
 """
-abstract type HealpixMap{T<:AbstractFloat} <: AbstractVector{T} end
+abstract type HealpixMap{T<:Number} <: AbstractVector{T} end
 
 for Map in (:RingHealpixMap, :NestHealpixMap)
-    @eval struct $Map{T<:AbstractFloat} <: HealpixMap{T}
+    @eval struct $Map{T<:Number} <: HealpixMap{T}
         nside :: Int
         pixels :: Vector{T}
         function $Map{T}(nside, pixels) where T
@@ -42,18 +42,18 @@ for Map in (:RingHealpixMap, :NestHealpixMap)
         $Map{T}(nside, pixels)
     end
 
-    @eval function $Map(pixels::Vector{T}) where T
+    @eval function $Map(pixels::AbstractVector{T}) where T
         nside = npix2nside(length(pixels))
         $Map{T}(nside, pixels)
     end
 
-    @eval function $Map(nside::Integer, pixels::Vector{T}) where T
+    @eval function $Map(nside::Integer, pixels::AbstractVector{T}) where T
         $Map{T}(nside, pixels)
     end
 end
 
 """
-    struct RingHealpixMap{T<:AbstractFloat} <: HealpixMap{T}
+    struct RingHealpixMap{T<:Number} <: HealpixMap{T}
 
 This type represents a Healpix equal-area pixelization of the sphere where pixels are ordered along
 rings of constant latitude.
@@ -98,7 +98,7 @@ true
 RingHealpixMap
 
 """
-    struct NestHealpixMap{T<:AbstractFloat} <: HealpixMap{T}
+    struct NestHealpixMap{T<:Number} <: HealpixMap{T}
 
 This type represents a Healpix equal-area pixelization of the sphere where nearby pixels also tend
 to be nearby in memory.
@@ -160,11 +160,6 @@ function verify_map_consistency(nside, npix)
     if expected_npix != npix
         err("got $npix pixels while expecting $expected_npix pixels (nside=$nside)")
     end
-end
-
-function verify_maps_are_consistent(lhs, rhs)
-    ordering(lhs) == ordering(rhs) || err("maps must have the same ordering")
-    lhs.nside == rhs.nside || err("maps must have the same number of pixels")
 end
 
 # Implement the AbstractArray interface
@@ -296,39 +291,56 @@ julia> pix2vec(NestHealpixMap(Float64, 256), 1)
 pix2vec
 
 function Base.:(==)(lhs::HealpixMap, rhs::HealpixMap)
+    # TODO: account for the differences in ordering so that we can compare RingHealpixMaps with
+    # NestHealpixMaps (expensive, but would be nice to have)
     ordering(lhs) == ordering(rhs) &&
         lhs.nside == rhs.nside && lhs.pixels == rhs.pixels
 end
 
-for operator in (:+, :-)
-    @eval function Base.$operator(lhs::HealpixMap, rhs::HealpixMap)
-        verify_maps_are_consistent(lhs, rhs)
-        typeof(lhs)(lhs.nside, $operator(lhs.pixels, rhs.pixels))
-    end
+# In general, HealpixMaps can only be == to other HealpixMaps because the ordering is important. The
+# AbstractVector fallback will simply compare the two vectors element-wise. This behavior is
+# undesirable so we override it here.
+Base.:(==)(lhs::HealpixMap, rhs::AbstractVector) = false
+Base.:(==)(lhs::AbstractVector, rhs::HealpixMap) = false
 
-    @eval function Base.$operator(lhs::Map, rhs::Real) where Map <: HealpixMap
-        typeof(lhs)(lhs.nside, $operator(lhs.pixels, rhs))
-    end
+# Custom broadcasting
+Base.Broadcast._containertype(::Type{<:RingHealpixMap}) = RingHealpixMap
+Base.Broadcast._containertype(::Type{<:NestHealpixMap}) = NestHealpixMap
+Base.Broadcast.promote_containertype(::Type{Any}, ::Type{T}) where {T<:HealpixMap} = T
+Base.Broadcast.promote_containertype(::Type{T}, ::Type{Any}) where {T<:HealpixMap} = T
+Base.Broadcast.promote_containertype(::Type{Array}, ::Type{T}) where {T<:HealpixMap} = T
+Base.Broadcast.promote_containertype(::Type{T}, ::Type{Array}) where {T<:HealpixMap} = T
 
-    @eval function Base.$operator(lhs::Real, rhs::HealpixMap)
-        typeof(rhs)(rhs.nside, $operator(lhs, rhs.pixels))
-    end
+function Base.Broadcast.promote_containertype(::Type{RingHealpixMap}, ::Type{NestHealpixMap})
+    err("cannot broadcast a ring ordered map with a nest ordered map")
 end
 
-for operator in (:*, :/)
-    @eval function Base.broadcast(::typeof(Base.$operator), lhs::HealpixMap, rhs::HealpixMap)
-        verify_maps_are_consistent(lhs, rhs)
-        typeof(lhs)(lhs.nside, broadcast($operator, lhs.pixels, rhs.pixels))
-    end
-
-    @eval function Base.broadcast(::typeof(Base.$operator), lhs::HealpixMap, rhs::Real)
-        typeof(lhs)(lhs.nside, broadcast($operator, lhs.pixels, rhs))
-    end
-
-    @eval function Base.broadcast(::typeof(Base.$operator), lhs::Real, rhs::HealpixMap)
-        typeof(rhs)(rhs.nside, broadcast($operator, lhs, rhs.pixels))
-    end
+function Base.Broadcast.promote_containertype(::Type{NestHealpixMap}, ::Type{RingHealpixMap})
+    err("cannot broadcast a ring ordered map with a nest ordered map")
 end
+
+function Base.Broadcast.broadcast_c(f, ::Type{T}, args...) where T<:HealpixMap
+    nside  = broadcast_nside(args...)
+    pixels = broadcast_pixels(args...)
+    T(nside, broadcast(f, pixels...))
+end
+
+@inline broadcast_nside(x, y, z...) = _broadcast_nside(_nside(x), broadcast_nside(y, z...))
+@inline broadcast_nside(x, y) = _broadcast_nside(_nside(x), _nside(y))
+@inline broadcast_nside(x) = _nside(x)
+@inline _broadcast_nside(nside::Integer, ::Void) = nside
+@inline _broadcast_nside(::Void, nside::Integer) = nside
+@inline function _broadcast_nside(nside1::Integer, nside2::Integer)
+    nside1 == nside2 || err("cannot broadcast two healpix maps with different nsides")
+    nside1
+end
+@inline _nside(map::HealpixMap) = map.nside
+@inline _nside(other) = nothing
+
+@inline broadcast_pixels(x, y...) = (_pixels(x), broadcast_pixels(y...)...)
+@inline broadcast_pixels(x) = (_pixels(x),)
+@inline _pixels(map::HealpixMap) = map.pixels
+@inline _pixels(other) = other
 
 function interpolate(map::HealpixMap{Float32}, θ, ϕ)
     ccall(("interpolate_float", libhealpixwrapper), Cfloat,

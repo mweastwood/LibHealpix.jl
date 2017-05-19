@@ -22,11 +22,13 @@
             zero_pixels = zeros(npix)
 
             map = @inferred Map(Float64, nside)
+            @test map != map.pixels
             @test map.nside === nside
             @test map.pixels == zero_pixels
             @test eltype(map) == Float64
 
             map = @inferred Map(pixels)
+            @test map != map.pixels
             @test map.nside === nside
             @test map.pixels == pixels
             @test eltype(map) == Float64
@@ -71,13 +73,13 @@
             @test map1 - map2 == Map(nside, map1.pixels - map2.pixels)
             @test map1 .* map2 == Map(nside, map1.pixels .* map2.pixels)
             @test map1 ./ map2 == Map(nside, map1.pixels ./ map2.pixels)
-            @test_throws DimensionMismatch map1 * map2
-            @test_throws DimensionMismatch map1 / map2
             @inferred map1 + map2
             @inferred map1 - map2
 
-            @test_throws LibHealpixException map1 + map3
-            @test_throws LibHealpixException map1 - map3
+            @test_throws DimensionMismatch map1 * map2
+            @test_throws DimensionMismatch map1 / map2
+            @test_throws DimensionMismatch map1 + map3
+            @test_throws DimensionMismatch map1 - map3
 
             @test map1 + a == Map(nside, map1.pixels + a)
             @test map1 - a == Map(nside, map1.pixels - a)
@@ -128,6 +130,24 @@
             @test vec2pix(map, [0, 1, 0]) === vec2pix_nest(nside, [0, 1, 0])
             @test pix2vec(map, 1) === pix2vec_nest(nside, 1)
             @test pix2vec(map, 100) === pix2vec_nest(nside, 100)
+        end
+    end
+
+    @testset "custom broadcasting" begin
+        for Map in (RingHealpixMap, NestHealpixMap)
+            nside = 4
+            npix = nside2npix(nside)
+            pixels = randn(npix)
+            map = Map(nside, pixels)
+
+            f(a, b, c) = a + b * c
+
+            @test sin.(map) == Map(nside, sin.(pixels))
+            @test (map .< 0) == Map(nside, pixels .< 0)
+            @test f.(1, 1, map) == Map(nside, f.(1, 1, pixels))
+            @test f.(1, map, map) == Map(nside, f.(1, pixels, pixels))
+            @test f.(map, map, map) == Map(nside, f.(pixels, pixels, pixels))
+            @inferred f.(map, map, map)
         end
     end
 
