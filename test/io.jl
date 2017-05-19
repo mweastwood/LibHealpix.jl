@@ -13,16 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using LibHealpix
-using Base.Test
-
-srand(123)
-@testset "LibHealpix Tests" begin
-    include("pixel.jl")
-    include("map.jl")
-    #include("alm.jl")
-    #include("transforms.jl")
-    #include("mollweide.jl")
-    include("io.jl")
+@testset "io.jl" begin
+    @testset "writehealpix / readhealpix" begin
+        for T in (Float32, Float64), Map in (RingHealpixMap, NestHealpixMap)
+            nside = 16
+            filename = tempname()*".fits"
+            map = Map(T, nside)
+            for i = 1:length(map)
+                map[i] = rand()
+            end
+            @test writehealpix(filename, map) == map
+            @test readhealpix(filename) == map
+            @test_throws LibHealpixException writehealpix(filename, map)
+            @test writehealpix(filename, map, replace=true) == map
+            @test readhealpix(filename) == map
+            rm(filename)
+        end
+    end
 end
 

@@ -28,6 +28,8 @@ Write the `HealpixMap` to disk as a FITS image.
 - `coordsys` - the coordinate system of the map (one of `"G"` galactic, `"E"` ecliptic, or `"C"`
     celestial)
 - `replace` - if set to true, the output file will be automatically overwritten if it exists
+
+**See also:** [`readhealpix`](@ref)
 """
 function writehealpix(filename, map::HealpixMap; coordsys::String = "", replace::Bool=false)
     if !replace && isfile(filename)
@@ -74,6 +76,8 @@ Read a `HealpixMap` (stored as a FITS image) from disk.
 **Arguments**
 
 - `filename` - the name of the input file (eg. `"/path/to/healpix.fits"`)
+
+**See also:** [`writehealpix`](@ref)
 """
 function readhealpix(filename)
     file = fits_open_file(filename) # readonly by default

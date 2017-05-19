@@ -147,7 +147,7 @@
             @test f.(1, 1, map) == Map(nside, f.(1, 1, pixels))
             @test f.(1, map, map) == Map(nside, f.(1, pixels, pixels))
             @test f.(map, map, map) == Map(nside, f.(pixels, pixels, pixels))
-            @inferred f.(map, map, map)
+            @inferred broadcast(f, map, map, map)
         end
     end
 
@@ -162,31 +162,5 @@
             @test LibHealpix.interpolate(map, 0, 0) === expected
         end
     end
-
-    #@testset "FITS I/O" begin
-    #    nside = 16
-    #    filename = tempname()*".fits"
-    #    map = HealpixMap(Float32, ring, nside)
-    #    for i = 1:length(map)
-    #        map[i] = rand()
-    #    end
-    #    writehealpix(filename, map)
-    #    newmap = readhealpix(filename)
-    #    @test map == newmap
-    #    @test_throws ErrorException writehealpix(filename, map)
-    #    @test writehealpix(filename, map, replace=true) == map
-
-    #    filename = tempname()*".fits"
-    #    map = HealpixMap(Float32, ring, nside)
-    #    for i = 1:length(map)
-    #        map[i] = rand()
-    #    end
-    #    writehealpix(filename, map)
-    #    newmap = readhealpix(filename)
-    #    @test map == newmap
-    #    @test_throws ErrorException writehealpix(filename, map)
-    #    @test writehealpix(filename, map, replace=true) == map
-    #end
-
 end
 
