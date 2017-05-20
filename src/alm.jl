@@ -30,24 +30,56 @@
 #
 #Construct an `Alm` object where all the coefficients are initialized to `zero(T)`.
 #"""
-struct Alm{T<:Complex} <: AbstractVector{T}
+
+doc"""
+    struct Alm{T<:Number} <: AbstractVector{T}
+
+This type holds a vector of spherical harmonic coefficients.
+
+**Fields:**
+
+- `lmax` - the maximum value for the $l$ quantum number
+- `mmax` - the maximum value for the $m$ quantum number (note that $m ≤ l$)
+- `coefficients` - the list of spherical harmonic coefficients
+
+**Constructors:**
+
+    Alm(T, lmax, mmax)
+
+Construct an `Alm` object that will store all spherical harmonic coefficients with element type `T`,
+$l ≤ lₘₐₓ$, and $m ≤ mₘₐₓ$. All of the coefficients will be initialized to zero.
+
+    Alm(lmax, mmax, coefficients)
+
+Construct an `Alm` object with the given list of initial coefficients corresponding to $l ≤ lₘₐₓ$,
+and $m ≤ mₘₐₓ$. A `LibHealpixException` will be thrown if too many or too few coefficients are
+provided.
+
+**Usage:**
+
+```jldoctest
+```
+
+**See also:** [`RingHealpixMap`](@ref), [`NestHealpixMap`](@ref)
+"""
+struct Alm{T<:Number} <: AbstractVector{T}
     lmax :: Int
     mmax :: Int
     coefficients :: Vector{T}
     function Alm{T}(lmax, mmax, coefficients) where T
-        lmax ≥ mmax || throw(ArgumentError())
+        lmax ≥ mmax || err("lmax must be ≥ mmax")
         N = ncoeff(lmax, mmax)
-        N == length(coefficients) || throw(ArgumentError("Expected $N coefficients with lmax=$lmax and mmax=$mmax."))
+        N == length(coefficients) || err("expected $N coefficients with lmax=$lmax and mmax=$mmax")
         new(lmax, mmax, coefficients)
     end
 end
 
-function Alm(lmax::Int, mmax::Int, coefficients::Vector{T}) where T
-    Alm{T}(lmax, mmax, coefficients)
-end
-
 function Alm(::Type{T}, lmax::Int, mmax::Int) where T
     Alm{T}(lmax, mmax, zeros(T, ncoeff(lmax, mmax)))
+end
+
+function Alm(lmax::Int, mmax::Int, coefficients::Vector{T}) where T
+    Alm{T}(lmax, mmax, coefficients)
 end
 
 """
@@ -56,7 +88,7 @@ end
 Compute the number of spherical harmonic coefficients with `l ≤ lmax` and `m ≤ mmax`.
 """
 function ncoeff(lmax, mmax)
-    lmax ≥ mmax || throw(ArgumentError())
+    lmax ≥ mmax || err("lmax must be ≥ mmax")
     ((2lmax+2-mmax)*(mmax+1))÷2
 end
 
@@ -68,64 +100,140 @@ Base.setindex!(alm::Alm, value, index::Int) = alm.coefficients[index] = value
 Base.IndexStyle(::Alm) = Base.IndexLinear()
 Base.similar(alm::Alm{T}) where {T} = Alm(T, alm.lmax, alm.mmax)
 
-#function Base.getindex(alm::Alm, l, m)
-#    absm = abs(m)
-#    output = alm[div(absm*(2alm.lmax-absm+3),2)+l-absm+1]
-#    ifelse(m ≥ 0, output, (-1)^absm*conj(output))
-#end
+# Additionally we would like to allow indexing by the quantum numbers `l` and `m`. Unfortunately
+# this is not straightforward. We chose to make `Alm <: AbstractVector` because this allows `Alm` to
+# behave as if it is a regular `Vector` in a large number of situations, which is convenient.
+# Unfortunately the `getindex` method with two indices already has a meaning for `AbstractVector`s.
 #
-#function Base.setindex!(alm::Alm, value, l, m)
-#    absm = abs(m)
-#    value = ifelse(m ≥ 0, value, (-1)^absm*conj(value))
-#    alm[div(absm*(2alm.lmax-absm+3),2)+l-absm+1] = value
-#end
+# Consider:
+#     julia> x = [1, 2, 3];
+#
+#     julia> x[2]
+#     2
+#
+#     julia> x[2, 1]
+#     2
+#
+# You are allowed to index into an `AbstractVector` with as many trailing ones as you like.
+#
+# This precludes the possibility of using
+#     getindex(::Alm, index) -> index by coefficient order
+#     getindex(::Alm, l, m)  -> index by value of the quantum numbers l and m
+#
+# Therefore we will use a macro to write
+#     @lm alm[l, m]         -> getindex_lm(alm, l, m)
+#     @lm alm[l, m] = value -> setindex_lm!(alm, value, l, m)
+#
+# This gets us pretty close to the desired syntax without breaking any assumptions about how
+# indexing into `AbstractVector`s works within Julia.
+#
+# References:
+# - https://discourse.julialang.org/t/custom-indexing-for-an-abstractvector-breaks-display-but-not-show/3813
+# - https://github.com/JuliaLang/julia/issues/14770
 
-#for op in (:+,:-)
-#    @eval function $op(lhs::Alm, rhs::Alm)
-#        Alm(lmax(lhs), mmax(lhs), $op(coefficients(lhs), coefficients(rhs)))
-#    end
-#end
-#
-#*(lhs::Number, rhs::Alm) = Alm(lmax(rhs), mmax(rhs), lhs * coefficients(rhs))
-#*(lhs::Alm, rhs::Number) = rhs * lhs
-#
-#function ==(lhs::Alm, rhs::Alm)
-#    lmax(lhs) == lmax(rhs) && mmax(lhs) == mmax(rhs) && coefficients(lhs) == coefficients(rhs)
-#end
-#
-#################################################################################
-## C++ wrapper methods
-#
-#type Alm_cxx
-#    ptr :: Ptr{Void}
-#end
-#
-#Base.unsafe_convert(::Type{Ptr{Void}}, alm_cxx::Alm_cxx) = alm_cxx.ptr
-#
-#function delete(alm_cxx::Alm_cxx)
-#    ccall(("deleteAlm",libhealpixwrapper), Void, (Ptr{Void},), alm_cxx)
-#end
-#
-#for f in (:lmax,:mmax)
-#    @eval function $f(alm_cxx::Alm_cxx)
-#        ccall(($(string(f)), libhealpixwrapper), Cint, (Ptr{Void},), alm_cxx)
-#    end
-#end
-#
-#function to_cxx(alm::Alm)
-#    l = lmax(alm)
-#    m = mmax(alm)
-#    alm_cxx = ccall(("newAlm", libhealpixwrapper), Ptr{Void}, (Ptr{Complex128}, Csize_t, Csize_t),
-#                    coefficients(alm), l, m) |> Alm_cxx
-#    finalizer(alm_cxx, delete)
-#    alm_cxx
-#end
-#
-#function to_julia(alm_cxx::Alm_cxx)
-#    l = lmax(alm_cxx)
-#    m = mmax(alm_cxx)
-#    coef = Array{Complex128}(num_alm(l, m))
-#    ccall(("alm2julia", libhealpixwrapper), Void, (Ptr{Void},Ptr{Complex128}), alm_cxx, coef)
-#    Alm(Int(l), Int(m), coef)
-#end
+Base.@propagate_inbounds function lm2index(lmax, l, m)
+    @boundscheck m ≥ 0 || err("m must be ≥ 0")
+    @boundscheck l ≥ m || err("l must be ≥ m")
+    @boundscheck lmax ≥ l || err("lmax must be ≥ l")
+    (m * (2lmax - m + 3)) ÷ 2 + l - m + 1
+end
+
+getindex_lm(alm::Alm, ::Colon, ::Colon) = alm[:]
+getindex_lm(alm::Alm, l::Integer, m::Integer) = alm[lm2index(alm.lmax, l, m)]
+function getindex_lm(alm::Alm, ::Colon, m::Integer)
+    collect(alm[lm2index(alm.lmax, l, m)] for l in m:alm.lmax)
+end
+function getindex_lm(alm::Alm, l::Integer, ::Colon)
+    collect(alm[lm2index(alm.lmax, l, m)] for m in 0:min(alm.mmax, l))
+end
+
+setindex_lm!(alm::Alm, value, ::Colon, ::Colon) = alm[:] = value
+setindex_lm!(alm::Alm, value, l::Integer, m::Integer) = alm[lm2index(alm.lmax, l, m)] = value
+function setindex_lm!(alm::Alm, value, ::Colon, m::Integer)
+    for (l, idx) in zip(m:alm.lmax, eachindex(value))
+        alm[lm2index(alm.lmax, l, m)] = value[idx]
+    end
+end
+function setindex_lm!(alm::Alm, value, l::Integer, ::Colon)
+    for (m, idx) in zip(0:min(alm.mmax, l), eachindex(value))
+        alm[lm2index(alm.lmax, l, m)] = value[idx]
+    end
+end
+
+"""
+    @lm
+"""
+macro lm(expr)
+    colon = :(:)
+    if @capture(expr, alm_[l_, m_])
+        # getindex
+        @esc alm l m
+        return quote
+            getindex_lm($alm, $l, $m)
+        end
+    elseif @capture(expr, alm_[l_, m_] = value_)
+        # setindex!
+        @esc alm l m value
+        return quote
+            setindex_lm!($alm, $value, $l, $m)
+        end
+    else
+        err("@lm usage examples: `@lm alm[l, m]` or `@lm alm[l, m] = value`")
+    end
+    nothing
+end
+
+function Base.:(==)(lhs::Alm, rhs::Alm)
+    lhs.lmax == rhs.lmax && lhs.mmax == rhs.mmax && lhs.coefficients == rhs.coefficients
+end
+
+# In general, Alms can only be == to other Alms because the meaning of the coefficients is
+# important. The AbstractVector fallback will simply compare the two vectors element-wise.  However
+# two Alms can be element-wise the same, but different if lmax and mmax are different.  This
+# behavior is therefore undesirable so we override it here.
+Base.:(==)(lhs::Alm, rhs::AbstractVector) = false
+Base.:(==)(lhs::AbstractVector, rhs::Alm) = false
+
+# Custom broadcasting
+Base.Broadcast._containertype(::Type{<:Alm}) = Alm
+Base.Broadcast.promote_containertype(::Type{Any}, ::Type{Alm}) = Alm
+Base.Broadcast.promote_containertype(::Type{Alm}, ::Type{Any}) = Alm
+Base.Broadcast.promote_containertype(::Type{Array}, ::Type{Alm}) = Alm
+Base.Broadcast.promote_containertype(::Type{Alm}, ::Type{Array}) = Alm
+
+function Base.Broadcast.broadcast_c(f, ::Type{Alm}, args...)
+    lmax = broadcast_lmax(args...)
+    mmax = broadcast_mmax(args...)
+    coefficients = broadcast_coefficients(args...)
+    Alm(lmax, mmax, broadcast(f, coefficients...))
+end
+
+@inline broadcast_lmax(x, y, z...) = _broadcast_lmax(_lmax(x), broadcast_lmax(y, z...))
+@inline broadcast_lmax(x, y) = _broadcast_lmax(_lmax(x), _lmax(y))
+@inline broadcast_lmax(x) = _lmax(x)
+@inline _broadcast_lmax(lmax::Integer, ::Void) = lmax
+@inline _broadcast_lmax(::Void, lmax::Integer) = lmax
+@inline function _broadcast_lmax(lmax1::Integer, lmax2::Integer)
+    lmax1 == lmax2 || err("cannot broadcast two Alms with different values for lmax")
+    lmax1
+end
+@inline _lmax(alm::Alm) = alm.lmax
+@inline _lmax(other) = nothing
+
+@inline broadcast_mmax(x, y, z...) = _broadcast_mmax(_mmax(x), broadcast_mmax(y, z...))
+@inline broadcast_mmax(x, y) = _broadcast_mmax(_mmax(x), _mmax(y))
+@inline broadcast_mmax(x) = _mmax(x)
+@inline _broadcast_mmax(mmax::Integer, ::Void) = mmax
+@inline _broadcast_mmax(::Void, mmax::Integer) = mmax
+@inline function _broadcast_mmax(mmax1::Integer, mmax2::Integer)
+    mmax1 == mmax2 || err("cannot broadcast two Alms with different values for mmax")
+    mmax1
+end
+@inline _mmax(alm::Alm) = alm.mmax
+@inline _mmax(other) = nothing
+
+@inline broadcast_coefficients(x, y...) = (_coefficients(x), broadcast_coefficients(y...)...)
+@inline broadcast_coefficients(x) = (_coefficients(x),)
+@inline _coefficients(alm::Alm) = alm.coefficients
+@inline _coefficients(other) = other
 

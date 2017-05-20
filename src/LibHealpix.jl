@@ -31,15 +31,18 @@ export HealpixMap, RingHealpixMap, NestHealpixMap
 export ang2pix, pix2ang, vec2pix, pix2vec
 export isring, isnest
 
+# alm.jl
+export Alm, ncoeff, @lm
 
-export writehealpix, readhealpix
-
-export Alm
+# transforms.jl
 export map2alm, alm2map
-export mollweide
+
+# io.jl
+export writehealpix, readhealpix
 
 using StaticArrays
 using FITSIO.Libcfitsio
+using MacroTools # needed for @lm
 
 if isfile(joinpath(dirname(@__FILE__),"..","deps","deps.jl"))
     include("../deps/deps.jl")

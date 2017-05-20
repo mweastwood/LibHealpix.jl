@@ -8,5 +8,7 @@ end
 ```
 
 ```@docs
+Alm
+ncoeff
 ```
 

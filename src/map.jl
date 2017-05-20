@@ -93,7 +93,7 @@ julia> map = RingHealpixMap(Float64, 256)
 true
 ```
 
-**See also:** [`HealpixMap`](@ref), [`NestHealpixMap`](@ref)
+**See also:** [`HealpixMap`](@ref), [`NestHealpixMap`](@ref), [`Alm`](@ref)
 """
 RingHealpixMap
 
@@ -138,7 +138,7 @@ julia> map = NestHealpixMap(Float64, 256)
 true
 ```
 
-**See also:** [`HealpixMap`](@ref), [`RingHealpixMap`](@ref)
+**See also:** [`HealpixMap`](@ref), [`RingHealpixMap`](@ref), [`Alm`](@ref)
 """
 NestHealpixMap
 
@@ -293,8 +293,7 @@ pix2vec
 function Base.:(==)(lhs::HealpixMap, rhs::HealpixMap)
     # TODO: account for the differences in ordering so that we can compare RingHealpixMaps with
     # NestHealpixMaps (expensive, but would be nice to have)
-    ordering(lhs) == ordering(rhs) &&
-        lhs.nside == rhs.nside && lhs.pixels == rhs.pixels
+    ordering(lhs) == ordering(rhs) && lhs.nside == rhs.nside && lhs.pixels == rhs.pixels
 end
 
 # In general, HealpixMaps can only be == to other HealpixMaps because the ordering is important. The
@@ -331,7 +330,7 @@ end
 @inline _broadcast_nside(nside::Integer, ::Void) = nside
 @inline _broadcast_nside(::Void, nside::Integer) = nside
 @inline function _broadcast_nside(nside1::Integer, nside2::Integer)
-    nside1 == nside2 || err("cannot broadcast two healpix maps with different nsides")
+    nside1 == nside2 || err("cannot broadcast two Healpix maps with different nsides")
     nside1
 end
 @inline _nside(map::HealpixMap) = map.nside

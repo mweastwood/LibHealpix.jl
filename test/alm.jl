@@ -17,9 +17,8 @@
     @testset "constructors" begin
         lmax = 5
         mmax = 2
-        ncoeff = LibHealpix.ncoeff(lmax, mmax)
-        coefficients = rand(Complex128, ncoeff)
-        zero_coefficients = zeros(Complex128, ncoeff)
+        coefficients = rand(Complex128, ncoeff(lmax, mmax))
+        zero_coefficients = zeros(Complex128, ncoeff(lmax, mmax))
 
         alm = @inferred Alm(lmax, mmax, coefficients)
         @test alm.lmax === lmax
@@ -30,6 +29,35 @@
         @test alm.lmax === lmax
         @test alm.mmax === mmax
         @test alm.coefficients == zero_coefficients
+    end
+
+    @testset "indexing" begin
+        lmax = 10
+        mmax = 5
+        coefficients = rand(Complex128, ncoeff(lmax, mmax))
+        alm = Alm(lmax, mmax, coefficients)
+
+        @test alm[1] === coefficients[1]
+        @test alm[end] === coefficients[end]
+        @test alm[4:5:end] == coefficients[4:5:end]
+        @test alm[abs.(alm) .> 0.5] == coefficients[abs.(coefficients) .> 0.5]
+
+        @test LibHealpix.lm2index(lmax, 0, 0) === 1
+        @test LibHealpix.lm2index(lmax, 1, 0) === 2
+        @test LibHealpix.lm2index(lmax, 1, 1) === lmax + 2
+        @test LibHealpix.lm2index(lmax, 2, 1) === lmax + 3
+        @test LibHealpix.lm2index(lmax, lmax, mmax) === ncoeff(lmax, mmax)
+        @test_throws LibHealpixException LibHealpix.lm2index(lmax, 0, 1)
+        @test_throws LibHealpixException LibHealpix.lm2index(lmax, lmax+1, 0)
+
+            #map[1] = 2
+            #@test map[1] == 2
+            #map[end] = 2
+            #@test map[end] == 2
+            #map[4:5:end] = 2
+            #@test all(map[4:5:end] .== 2)
+            #map[map .> 0] = 2
+            #@test all(map[map .> 0] .== 2)
     end
 
     #let
