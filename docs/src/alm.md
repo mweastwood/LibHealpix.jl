@@ -9,6 +9,7 @@ end
 
 ```@docs
 Alm
-ncoeff
+@lm
+QuantumNumbers
 ```
 

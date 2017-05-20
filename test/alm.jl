@@ -17,8 +17,8 @@
     @testset "constructors" begin
         lmax = 5
         mmax = 2
-        coefficients = rand(Complex128, ncoeff(lmax, mmax))
-        zero_coefficients = zeros(Complex128, ncoeff(lmax, mmax))
+        coefficients = rand(Complex128, LibHealpix.ncoeff(lmax, mmax))
+        zero_coefficients = zeros(Complex128, LibHealpix.ncoeff(lmax, mmax))
 
         alm = @inferred Alm(lmax, mmax, coefficients)
         @test alm.lmax === lmax
@@ -34,7 +34,7 @@
     @testset "indexing" begin
         lmax = 10
         mmax = 5
-        coefficients = rand(Complex128, ncoeff(lmax, mmax))
+        coefficients = rand(Complex128, LibHealpix.ncoeff(lmax, mmax))
         alm = Alm(lmax, mmax, coefficients)
 
         @test alm[1] === coefficients[1]
@@ -42,67 +42,100 @@
         @test alm[4:5:end] == coefficients[4:5:end]
         @test alm[abs.(alm) .> 0.5] == coefficients[abs.(coefficients) .> 0.5]
 
+        alm[1] = 2
+        @test alm[1] == 2
+        alm[end] = 2
+        @test alm[end] == 2
+        alm[4:5:end] = 2
+        @test all(alm[4:5:end] .== 2)
+        alm[abs.(alm) .> 0.5] = 2
+        @test all(alm[abs.(alm) .> 0.5] .== 2)
+
         @test LibHealpix.lm2index(lmax, 0, 0) === 1
         @test LibHealpix.lm2index(lmax, 1, 0) === 2
         @test LibHealpix.lm2index(lmax, 1, 1) === lmax + 2
         @test LibHealpix.lm2index(lmax, 2, 1) === lmax + 3
-        @test LibHealpix.lm2index(lmax, lmax, mmax) === ncoeff(lmax, mmax)
+        @test LibHealpix.lm2index(lmax, lmax, mmax) === LibHealpix.ncoeff(lmax, mmax)
+        @test_throws LibHealpixException LibHealpix.lm2index(lmax, 0, -1)
         @test_throws LibHealpixException LibHealpix.lm2index(lmax, 0, 1)
         @test_throws LibHealpixException LibHealpix.lm2index(lmax, lmax+1, 0)
 
-            #map[1] = 2
-            #@test map[1] == 2
-            #map[end] = 2
-            #@test map[end] == 2
-            #map[4:5:end] = 2
-            #@test all(map[4:5:end] .== 2)
-            #map[map .> 0] = 2
-            #@test all(map[map .> 0] .== 2)
+        lmax = 3
+        mmax = 2
+        coefficients = [0, 1, 2, 3, 2, 3, 4, 4, 5]
+        alm = Alm(lmax, mmax, coefficients)
+        for m = 0:mmax, l = m:lmax
+            @test @lm(alm[l, m]) == m + l
+            @lm alm[l, m] = m * l
+            @test @lm(alm[l, m]) == m * l
+        end
+
+        lmax = 3
+        mmax = 2
+        coefficients = [0, 1, 2, 3, 2, 3, 4, 4, 5]
+        alm = Alm(lmax, mmax, coefficients)
+        @test @lm(alm[0, :]) == [0]
+        @test @lm(alm[1, :]) == [1, 2]
+        @test @lm(alm[2, :]) == [2, 3, 4]
+        @test @lm(alm[3, :]) == [3, 4, 5]
+        @test @lm(alm[:, 0]) == [0, 1, 2, 3]
+        @test @lm(alm[:, 1]) == [2, 3, 4]
+        @test @lm(alm[:, 2]) == [4, 5]
     end
 
-    #let
-    #    @test_throws DomainError Alm{Complex128,5,10}(zeros(Complex128,5))
-    #    @test_throws DimensionMismatch Alm{Complex128,10,5}(zeros(Complex128,5))
+    @testset "iteration" begin
+        lmax = 23
+        mmax = 11
 
-    #    lmax′ = 10
-    #    mmax′ = 5
-    #    N = LibHealpix.num_alm(lmax′,mmax′)
+        expected_l = [l for m = 0:mmax for l = m:lmax]
+        expected_m = [m for m = 0:mmax for l = m:lmax]
+        @test [l for (l, m) in QuantumNumbers(lmax, mmax)] == expected_l
+        @test [m for (l, m) in QuantumNumbers(lmax, mmax)] == expected_m
+        @test length(QuantumNumbers(lmax, mmax)) == length(expected_l)
+        @inferred collect(QuantumNumbers(lmax, mmax))
+    end
 
-    #    alm = Alm{Complex128,lmax′,mmax′}(zeros(Complex128,N))
-    #    @test lmax(alm) == lmax′
-    #    @test mmax(alm) == mmax′
-    #    @test length(alm) == length(coefficients(alm)) == LibHealpix.num_alm(lmax′,mmax′)
+    @testset "arithmetic" begin
+        lmax = 23
+        mmax = 11
+        alm1 = Alm(Complex128, lmax, mmax)
+        alm2 = Alm(Complex128, lmax, mmax)
+        rand!(alm1.coefficients)
+        rand!(alm2.coefficients)
 
-    #    alm = Alm(Complex128,lmax′,mmax′)
-    #    @test lmax(alm) == lmax′
-    #    @test mmax(alm) == mmax′
-    #    @test coefficients(alm) == zeros(Complex128,N)
-    #    @test length(alm) == length(coefficients(alm)) == LibHealpix.num_alm(lmax′,mmax′)
-    #end
+        @test alm1 + alm2 == Alm(lmax, mmax, alm1.coefficients + alm2.coefficients)
+        @test alm1 - alm2 == Alm(lmax, mmax, alm1.coefficients - alm2.coefficients)
+        @test alm1 .* alm2 == Alm(lmax, mmax, alm1.coefficients .* alm2.coefficients)
+        @test alm1 ./ alm2 == Alm(lmax, mmax, alm1.coefficients ./ alm2.coefficients)
 
-    #let lmax = 10, mmax = 5
-    #    N = LibHealpix.num_alm(lmax,mmax)
-    #    alm = Alm(Complex128,lmax,mmax)
-    #    alm[0,0] = 1
-    #    @test alm[0,0] == alm[1] == coefficients(alm)[1] == 1
-    #    alm[2] = 2
-    #    @test alm[1,0] == alm[2] == coefficients(alm)[2] == 2
+        a = rand(Complex128)
+        @test alm1 + a == Alm(lmax, mmax, alm1.coefficients + a)
+        @test alm1 - a == Alm(lmax, mmax, alm1.coefficients - a)
+        @test alm1 * a == Alm(lmax, mmax, alm1.coefficients * a)
+        @test alm1 / a == Alm(lmax, mmax, alm1.coefficients / a)
+        @test a + alm1 == Alm(lmax, mmax, a + alm1.coefficients)
+        @test a - alm1 == Alm(lmax, mmax, a - alm1.coefficients)
+        @test a * alm1 == Alm(lmax, mmax, a * alm1.coefficients)
+        @test a ./ alm1 == Alm(lmax, mmax, a ./ alm1.coefficients)
 
-    #    a = rand(Complex128)
-    #    x = complex(rand(N),rand(N))
-    #    y = complex(rand(N),rand(N))
-    #    alm1 = Alm(lmax,mmax,x)
-    #    alm2 = Alm(lmax,mmax,y)
-    #    @test coefficients(alm1+alm2) == x+y
-    #    @test coefficients(alm1-alm2) == x-y
-    #    @test coefficients(a*alm1) == coefficients(alm1*a) == a*x
-    #end
+        @test mean([alm1, alm2]) == (alm1 + alm2)/2
+    end
 
-    #let
-    #    alm = Alm(Complex128, 5, 5)
-    #    rand!(alm.alm)
-    #    alm′ = LibHealpix.to_julia(LibHealpix.to_cxx(alm))
-    #    @test alm == alm′
-    #end
+    @testset "custom broadcasting" begin
+        lmax = 23
+        mmax = 11
+        alm = Alm(Complex128, lmax, mmax)
+        rand!(alm.coefficients)
+        coefficients = copy(alm.coefficients)
+
+        f(a, b, c) = a + b * c
+
+        @test sin.(alm) == Alm(lmax, mmax, sin.(coefficients))
+        @test (abs.(alm) .< 0.5) == Alm(lmax, mmax, abs.(coefficients) .< 0.5)
+        @test f.(1, 1, alm) == Alm(lmax, mmax, f.(1, 1, coefficients))
+        @test f.(1, alm, alm) == Alm(lmax, mmax, f.(1, coefficients, coefficients))
+        @test f.(alm, alm, alm) == Alm(lmax, mmax, f.(coefficients, coefficients, coefficients))
+        @inferred broadcast(f, alm, alm, alm)
+    end
 end
 

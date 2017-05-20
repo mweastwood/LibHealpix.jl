@@ -78,7 +78,7 @@ function Alm(::Type{T}, lmax::Int, mmax::Int) where T
     Alm{T}(lmax, mmax, zeros(T, ncoeff(lmax, mmax)))
 end
 
-function Alm(lmax::Int, mmax::Int, coefficients::Vector{T}) where T
+function Alm(lmax::Int, mmax::Int, coefficients::AbstractVector{T}) where T
     Alm{T}(lmax, mmax, coefficients)
 end
 
@@ -87,10 +87,7 @@ end
 
 Compute the number of spherical harmonic coefficients with `l ≤ lmax` and `m ≤ mmax`.
 """
-function ncoeff(lmax, mmax)
-    lmax ≥ mmax || err("lmax must be ≥ mmax")
-    ((2lmax+2-mmax)*(mmax+1))÷2
-end
+ncoeff(lmax, mmax) = length(QuantumNumbers(lmax, mmax))
 
 # Implement the AbstractArray interface
 Base.length(alm::Alm) = length(alm.coefficients)
@@ -182,6 +179,46 @@ macro lm(expr)
     end
     nothing
 end
+
+# Iterate over spherical harmonic quantum numbers
+
+"""
+    struct QuantumNumbers
+
+
+"""
+struct QuantumNumbers
+    lmax :: Int
+    mmax :: Int
+    function QuantumNumbers(lmax, mmax)
+        lmax ≥ mmax || err("lmax must be ≥ mmax")
+        new(lmax, mmax)
+    end
+end
+
+QuantumNumbers(alm::Alm) = QuantumNumbers(alm.lmax, alm.mmax)
+
+Base.start(iter::QuantumNumbers) = 0, 0
+
+function Base.next(iter::QuantumNumbers, state)
+    l, m = state
+    if l == iter.lmax
+        l′ = m + 1
+        m′ = m + 1
+    else
+        l′ = l + 1
+        m′ = m
+    end
+    (l, m), (l′, m′)
+end
+
+function Base.done(iter::QuantumNumbers, state)
+    l, m = state
+    m > iter.mmax
+end
+
+Base.length(iter::QuantumNumbers) = ((2iter.lmax + 2 - iter.mmax) * (iter.mmax + 1)) ÷ 2
+Base.eltype(::Type{QuantumNumbers}) = Tuple{Int, Int}
 
 function Base.:(==)(lhs::Alm, rhs::Alm)
     lhs.lmax == rhs.lmax && lhs.mmax == rhs.mmax && lhs.coefficients == rhs.coefficients

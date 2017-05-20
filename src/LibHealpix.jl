@@ -32,7 +32,8 @@ export ang2pix, pix2ang, vec2pix, pix2vec
 export isring, isnest
 
 # alm.jl
-export Alm, ncoeff, @lm
+export Alm, @lm
+export QuantumNumbers
 
 # transforms.jl
 export map2alm, alm2map
