@@ -1,4 +1,4 @@
-julia 0.6-
+julia 0.6-pre
 BinDeps
-FITSIO
-StaticArrays
+FITSIO 0.10.0
+StaticArrays 0.5.1
