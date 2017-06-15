@@ -37,6 +37,16 @@
         end
     end
 
+    @testset "isring/isnest" begin
+        map = RingHealpixMap(Float64, 4)
+        @test isring(map)
+        @test !isnest(map)
+
+        map = NestHealpixMap(Float64, 4)
+        @test !isring(map)
+        @test isnest(map)
+    end
+
     @testset "indexing" begin
         for Map in (RingHealpixMap, NestHealpixMap)
             nside = 4
@@ -130,6 +140,15 @@
             @test vec2pix(map, [0, 1, 0]) === vec2pix_nest(nside, [0, 1, 0])
             @test pix2vec(map, 1) === pix2vec_nest(nside, 1)
             @test pix2vec(map, 100) === pix2vec_nest(nside, 100)
+        end
+    end
+
+    @testset "verify_map_consistency" begin
+        # test that this correctly identifies when the user has shot themselves in the foot
+        for Map in (RingHealpixMap, NestHealpixMap)
+            map = Map(Float64, 4)
+            resize!(map.pixels, 10)
+            @test_throws LibHealpixException LibHealpix.verify_map_consistency(map)
         end
     end
 

@@ -13,6 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function read_coordsys(filename)
+    file = fits_open_file(filename)
+    fits_movabs_hdu(file, 2)
+    coordsys, _ = fits_read_key_str(file, "COORDSYS")
+    fits_close_file(file)
+    coordsys
+end
+
 @testset "io.jl" begin
     @testset "writehealpix / readhealpix" begin
         for T in (Float32, Float64), Map in (RingHealpixMap, NestHealpixMap)
@@ -27,7 +35,16 @@
             @test_throws LibHealpixException writehealpix(filename, map)
             @test writehealpix(filename, map, replace=true) == map
             @test readhealpix(filename) == map
+            @test writehealpix(filename, map, coordsys="G", replace=true) == map
+            @test read_coordsys(filename) == "G"
             rm(filename)
+        end
+
+        for T in (Int32, Int64), Map in (RingHealpixMap, NestHealpixMap)
+            nside = 16
+            filename = tempname()*".fits"
+            map = Map(T, nside)
+            @test_throws LibHealpixException writehealpix(filename, map)
         end
     end
 end

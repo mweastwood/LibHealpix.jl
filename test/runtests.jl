@@ -15,6 +15,7 @@
 
 using LibHealpix
 using Base.Test
+using FITSIO.Libcfitsio
 
 srand(123)
 @testset "LibHealpix Tests" begin

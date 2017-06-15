@@ -83,6 +83,12 @@
         @inferred npix2nside(49152)
     end
 
+    @testset "nside2nring" begin
+        @test nside2nring(2) == 7
+        @test nside2nring(4) == 15
+        @test nside2nring(256) == 1023
+    end
+
     @testset "ang2vec" begin
         @test ang2vec(0, 0) === LibHealpix.UnitVector(0, 0, 1)
         @test ang2vec(π, 0) ≈ LibHealpix.UnitVector(0, 0, -1)
