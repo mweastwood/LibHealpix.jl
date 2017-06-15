@@ -89,10 +89,10 @@
 
         expected_l = [l for m = 0:mmax for l = m:lmax]
         expected_m = [m for m = 0:mmax for l = m:lmax]
-        @test [l for (l, m) in QuantumNumbers(lmax, mmax)] == expected_l
-        @test [m for (l, m) in QuantumNumbers(lmax, mmax)] == expected_m
-        @test length(QuantumNumbers(lmax, mmax)) == length(expected_l)
-        @inferred collect(QuantumNumbers(lmax, mmax))
+        @test [l for (l, m) in lm(lmax, mmax)] == expected_l
+        @test [m for (l, m) in lm(lmax, mmax)] == expected_m
+        @test length(lm(lmax, mmax)) == length(expected_l)
+        @inferred collect(lm(lmax, mmax))
     end
 
     @testset "arithmetic" begin

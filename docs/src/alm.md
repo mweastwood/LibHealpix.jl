@@ -9,7 +9,7 @@ end
 
 ```@docs
 Alm
+lm
 @lm
-QuantumNumbers
 ```
 

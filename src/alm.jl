@@ -13,24 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#"""
-#    Alm{T<:Complex, lmax, mmax}
-#
-#This type holds a vector of spherical harmonic coefficients.
-#
-#Construction of this type will throw a `DomainError` exception if `mmax > lmax`.
-#A `DimensionMismatch` exception will be thrown if the provided
-#list of coefficients is not the correct length.
-#
-#    Alm(lmax, mmax, coefficients)
-#
-#Construct an `Alm` object with the given list of coefficients.
-#
-#    Alm(T, lmax, mmax)
-#
-#Construct an `Alm` object where all the coefficients are initialized to `zero(T)`.
-#"""
-
 doc"""
     struct Alm{T<:Number} <: AbstractVector{T}
 
@@ -58,9 +40,22 @@ provided.
 **Usage:**
 
 ```jldoctest
+julia> alm = Alm(Complex128, 10, 10)
+       for (l, m) in lm(alm)
+           @lm alm[l, m] = l * m
+       end
+       @lm(alm[10, 5]) == 50
+true
 ```
 
-**See also:** [`RingHealpixMap`](@ref), [`NestHealpixMap`](@ref)
+!!! note
+    The `lm` function is used to iterate over the spherical harmonic quantum numbers $l$ and $m$.
+
+!!! note
+    The `@lm` macro is used to index into an `Alm` object when given the spherical harmonic quantum
+    numbers $l$ and $m$.
+
+**See also:** [`RingHealpixMap`](@ref), [`NestHealpixMap`](@ref), [`lm`](@ref), [`@lm`](@ref)
 """
 struct Alm{T<:Number} <: AbstractVector{T}
     lmax :: Int
@@ -87,7 +82,7 @@ end
 
 Compute the number of spherical harmonic coefficients with `l ≤ lmax` and `m ≤ mmax`.
 """
-ncoeff(lmax, mmax) = length(QuantumNumbers(lmax, mmax))
+ncoeff(lmax, mmax) = length(lm(lmax, mmax))
 
 # Implement the AbstractArray interface
 Base.length(alm::Alm) = length(alm.coefficients)
@@ -157,8 +152,45 @@ function setindex_lm!(alm::Alm, value, l::Integer, ::Colon)
     end
 end
 
-"""
+doc"""
     @lm
+
+This macro is used to index an `Alm` object when given the values for quantum numbers $l$ and $m$.
+
+**Usage**
+
+```jldoctest
+julia> alm = Alm(Int, 2, 1)
+       for (l, m) in lm(alm)
+           @lm alm[l, m] = l + m
+       end
+
+julia> @lm alm[1, 1]
+2
+
+julia> @lm alm[1, :] # all coefficients with l == 1
+2-element Array{Int64,1}:
+ 1
+ 2
+
+julia> @lm alm[:, 1] # all coefficients with m == 1
+2-element Array{Int64,1}:
+ 2
+ 3
+```
+
+**Background**
+
+`Alm` implements the `AbstractVector` interface which allows the type to be used in place of a
+standard `Vector` in many cases. This generally makes sense because `Alm` is simply a wrapper around
+a standard `Vector`.
+
+However, one consequence of being an `AbstractVector` is that the two-element `getindex` function
+already has a meaning and therefore `alm[l, m]` *cannot* be used to mean "give me the coefficient
+corresponding to the quantum numbers $l$ and $m$". Instead `@lm alm[l, m]` calls a separate function
+that does give you the coefficient for $l$ and $m$.
+
+**See Also:** [`Alm`](@ref), [`lm`](@ref)
 """
 macro lm(expr)
     colon = :(:)
@@ -182,25 +214,18 @@ end
 
 # Iterate over spherical harmonic quantum numbers
 
-"""
-    struct QuantumNumbers
-
-
-"""
-struct QuantumNumbers
+struct QuantumNumberIterator
     lmax :: Int
     mmax :: Int
-    function QuantumNumbers(lmax, mmax)
+    function QuantumNumberIterator(lmax, mmax)
         lmax ≥ mmax || err("lmax must be ≥ mmax")
         new(lmax, mmax)
     end
 end
 
-QuantumNumbers(alm::Alm) = QuantumNumbers(alm.lmax, alm.mmax)
+Base.start(iter::QuantumNumberIterator) = 0, 0
 
-Base.start(iter::QuantumNumbers) = 0, 0
-
-function Base.next(iter::QuantumNumbers, state)
+function Base.next(iter::QuantumNumberIterator, state)
     l, m = state
     if l == iter.lmax
         l′ = m + 1
@@ -212,13 +237,45 @@ function Base.next(iter::QuantumNumbers, state)
     (l, m), (l′, m′)
 end
 
-function Base.done(iter::QuantumNumbers, state)
+function Base.done(iter::QuantumNumberIterator, state)
     l, m = state
     m > iter.mmax
 end
 
-Base.length(iter::QuantumNumbers) = ((2iter.lmax + 2 - iter.mmax) * (iter.mmax + 1)) ÷ 2
-Base.eltype(::Type{QuantumNumbers}) = Tuple{Int, Int}
+Base.length(iter::QuantumNumberIterator) = ((2iter.lmax + 2 - iter.mmax) * (iter.mmax + 1)) ÷ 2
+Base.eltype(::Type{QuantumNumberIterator}) = Tuple{Int, Int}
+
+doc"""
+    lm(lmax, mmax)
+    lm(alm)
+
+Construct an interator for iterating over all possible values of the spherical harmonic quantum
+numbers $l ≤ lₘₐₓ$ and $m ≤ mₘₐₓ$.
+
+**Arguments:**
+
+- `lmax` - the maximum value of $l$
+- `mmax` - the maximum value of $m$
+- `alm` - if an `Alm` object is provided, `lmax` and `mmax` will be inferred from the corresponding
+    fields
+
+**Usage:**
+
+```jldoctest
+julia> for (l, m) in lm(2, 1)
+           @show l, m
+       end
+(l, m) = (0, 0)
+(l, m) = (1, 0)
+(l, m) = (2, 0)
+(l, m) = (1, 1)
+(l, m) = (2, 1)
+```
+
+**See Also:** [`Alm`](@ref), [`@lm`](@ref)
+"""
+lm(lmax, mmax) = QuantumNumberIterator(lmax, mmax)
+lm(alm::Alm) = lm(alm.lmax, alm.mmax)
 
 function Base.:(==)(lhs::Alm, rhs::Alm)
     lhs.lmax == rhs.lmax && lhs.mmax == rhs.mmax && lhs.coefficients == rhs.coefficients
