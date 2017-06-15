@@ -13,17 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using LibHealpix
-using Base.Test
-using FITSIO.Libcfitsio
+using Documenter, LibHealpix
 
-srand(123)
-@testset "LibHealpix Tests" begin
-    include("pixel.jl")
-    include("map.jl")
-    include("alm.jl")
-    include("transforms.jl")
-    include("projections.jl")
-    include("io.jl")
-end
+makedocs(
+    format = :html,
+    sitename = "LibHealpix.jl",
+    pages = [
+        "Home" => "index.md",
+        "Documentation" => [
+            "pixel.md",
+            "map.md",
+            "alm.md"
+        ]
+    ]
+)
+
+deploydocs(
+    repo = "github.com/mweastwood/LibHealpix.jl.git",
+    julia = "0.6",
+    osname = "linux"
+)
 
