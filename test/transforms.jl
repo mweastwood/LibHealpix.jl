@@ -15,35 +15,39 @@
 
 @testset "transforms.jl" begin
     @testset "alm2map / map2alm" begin
-        lmax = 25
-        mmax = 25
-        nside = 16
-        npix = LibHealpix.nside2npix(nside)
-        map = HealpixMap(ring, rand(npix))
-        alm = map2alm(map, lmax, mmax)
-        @test alm.lmax === lmax
-        @test alm.mmax === mmax
+        for T in (Float32, Float64)
+            lmax = 25
+            mmax = 25
+            nside = 16
+            map = RingHealpixMap(rand(T, nside2npix(nside)))
+            alm = map2alm(map, lmax, mmax)
+            @test alm.lmax === lmax
+            @test alm.mmax === mmax
+            @test eltype(alm) == Complex{T}
 
-        # Note that the algorithm used by map2alm isn't particularly great with no iterations (hence
-        # the rough tolerance)
-        map1 = alm2map(alm, nside)
-        map2 = alm2map(map2alm(map1, lmax, mmax), nside)
-        @test norm(map1 - map2) / norm(map1) < 1e-2
-        @test map1.order === ring
-        @test map1.nside === nside
+            # Note that the algorithm used by map2alm isn't particularly great with no iterations
+            # (hence the rough tolerance)
+            map1 = alm2map(alm, nside)
+            map2 = alm2map(map2alm(map1, lmax, mmax), nside)
+            @test norm(map1 - map2) / norm(map1) < 1e-2
+            @test map1.nside === nside
+            @test eltype(map1) == T
 
-        # With more iterations we should be able to do better
-        map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 1), nside)
-        @test norm(map1 - map2) / norm(map1) < 1e-3
-        map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 2), nside)
-        @test norm(map1 - map2) / norm(map1) < 1e-4
-        map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 3), nside)
-        @test norm(map1 - map2) / norm(map1) < 1e-5
-        map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 10), nside)
-        @test norm(map1 - map2) / norm(map1) < 1e-12
+            # With more iterations we should be able to do better
+            map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 1), nside)
+            @test norm(map1 - map2) / norm(map1) < 1e-3
+            map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 2), nside)
+            @test norm(map1 - map2) / norm(map1) < 1e-4
+            map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 3), nside)
+            @test norm(map1 - map2) / norm(map1) < 1e-5
+            if T == Float64
+                map2 = alm2map(map2alm(map1, lmax, mmax, iterations = 10), nside)
+                @test norm(map1 - map2) / norm(map1) < 1e-12
+            end
 
-        @inferred alm2map(alm, nside)
-        @inferred map2alm(map, lmax, mmax)
+            @inferred alm2map(alm, nside)
+            @inferred map2alm(map, lmax, mmax)
+        end
     end
 end
 

@@ -37,6 +37,9 @@ export Alm, @lm, lm
 # transforms.jl
 export map2alm, alm2map
 
+# projections.jl
+export mollweide
+
 # io.jl
 export writehealpix, readhealpix
 
@@ -64,7 +67,7 @@ include("pixel.jl")
 include("map.jl")
 include("alm.jl")
 include("transforms.jl")
-include("mollweide.jl")
+include("projections.jl")
 include("io.jl")
 
 end

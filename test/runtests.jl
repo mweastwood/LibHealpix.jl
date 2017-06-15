@@ -22,8 +22,8 @@ srand(123)
     include("pixel.jl")
     include("map.jl")
     include("alm.jl")
-    #include("transforms.jl")
-    #include("mollweide.jl")
+    include("transforms.jl")
+    include("projections.jl")
     include("io.jl")
 end
 
