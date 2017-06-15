@@ -209,7 +209,6 @@ macro lm(expr)
     else
         err("@lm usage examples: `@lm alm[l, m]` or `@lm alm[l, m] = value`")
     end
-    nothing
 end
 
 # Iterate over spherical harmonic quantum numbers

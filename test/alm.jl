@@ -36,6 +36,7 @@
         mmax = 5
         coefficients = rand(Complex128, LibHealpix.ncoeff(lmax, mmax))
         alm = Alm(lmax, mmax, coefficients)
+        @test length(alm) == length(coefficients)
 
         @test alm[1] === coefficients[1]
         @test alm[end] === coefficients[end]
@@ -81,18 +82,35 @@
         @test @lm(alm[:, 0]) == [0, 1, 2, 3]
         @test @lm(alm[:, 1]) == [2, 3, 4]
         @test @lm(alm[:, 2]) == [4, 5]
+        @test @lm(alm[:, :]) == alm[:] == coefficients
+
+        coefficients = rand(Int, 9)
+        @lm alm[:, :] = coefficients
+        @test @lm(alm[:, :]) == alm[:] == coefficients
+
+        coefficients = rand(Int, 2)
+        @lm alm[1, :] = coefficients
+        @test @lm(alm[1, :]) == coefficients
+
+        coefficients = rand(Int, 3)
+        @lm alm[:, 1] = coefficients
+        @test @lm(alm[:, 1]) == coefficients
     end
 
     @testset "iteration" begin
         lmax = 23
         mmax = 11
+        alm = Alm(Int, lmax, mmax)
 
         expected_l = [l for m = 0:mmax for l = m:lmax]
         expected_m = [m for m = 0:mmax for l = m:lmax]
         @test [l for (l, m) in lm(lmax, mmax)] == expected_l
         @test [m for (l, m) in lm(lmax, mmax)] == expected_m
-        @test length(lm(lmax, mmax)) == length(expected_l)
+        @test [l for (l, m) in lm(alm)] == expected_l
+        @test [m for (l, m) in lm(alm)] == expected_m
+        @test length(lm(lmax, mmax)) == length(lm(alm)) == length(expected_l)
         @inferred collect(lm(lmax, mmax))
+        @inferred collect(lm(alm))
     end
 
     @testset "arithmetic" begin
