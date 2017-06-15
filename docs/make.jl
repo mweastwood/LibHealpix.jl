@@ -31,6 +31,9 @@ makedocs(
 deploydocs(
     repo = "github.com/mweastwood/LibHealpix.jl.git",
     julia = "0.6",
-    osname = "linux"
+    osname = "linux",
+    target = "build",
+    deps = nothing,
+    make = nothing
 )
 
