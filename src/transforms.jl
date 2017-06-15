@@ -36,7 +36,7 @@ for (T, suffix) in ((Float32, "_float"), (Float64, "_double"))
 end
 
 doc"""
-    map2alm(map, lmax, mmax; iterations=0)
+    map2alm(map, lmax, mmax)
 
 Compute the spherical harmonic coefficients of the given Healpix map by means of a spherical
 harmonic transform.

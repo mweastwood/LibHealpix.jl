@@ -20,11 +20,11 @@ makedocs(
     sitename = "LibHealpix.jl",
     pages = [
         "Home" => "index.md",
-        "Documentation" => [
-            "pixel.md",
-            "map.md",
-            "alm.md"
-        ]
+        "Manual" => [
+            "getting-started.md",
+            "cookbook.md"
+        ],
+        "Library" => "library.md"
     ]
 )
 
