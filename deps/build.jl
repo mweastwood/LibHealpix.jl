@@ -2,6 +2,8 @@ using BinDeps
 
 BinDeps.@setup
 
+# Healpix
+
 libchealpix       = library_dependency("libchealpix")
 libhealpix_cxx    = library_dependency("libhealpix_cxx")
 libhealpixwrapper = library_dependency("libhealpixwrapper")

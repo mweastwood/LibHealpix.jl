@@ -17,10 +17,11 @@ CFLAGS := -c -Wall -Werror -fpic -Wno-unknown-pragmas -std=c++0x
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
-SHARED_LIBRARY = libhealpixwrapper.so
+	SHARED_LIBRARY = libhealpixwrapper.so
+	LDFLAGS = -Wl,--no-as-needed
 endif
 ifeq ($(UNAME), Darwin)
-SHARED_LIBRARY = libhealpixwrapper.dylib
+	SHARED_LIBRARY = libhealpixwrapper.dylib
 endif
 
 # NOTE: $(PWD) does not always give the location of the Makefile.  In particular, if you run `make
@@ -41,7 +42,7 @@ wrapper.o: wrapper.cpp
 	$(CXX) $(CFLAGS) $(PKG_CONFIG_CFLAGS) wrapper.cpp
 
 $(SHARED_LIBRARY): wrapper.o
-	$(CXX) -Wl,--no-as-needed $(PKG_CONFIG_LIBS) -Wl,-rpath,$(LIB_DIR) -shared -o $(SHARED_LIBRARY) wrapper.o
+	$(CXX) $(LDFLAGS) $(PKG_CONFIG_LIBS) -Wl,-rpath,$(LIB_DIR) -shared -o $(SHARED_LIBRARY) wrapper.o
 
 clean:
 	-rm -f wrapper.o
