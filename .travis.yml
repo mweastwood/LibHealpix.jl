@@ -1,6 +1,7 @@
 language: julia
 os:
     - linux
+    - osx
 julia:
     - 0.6
 notifications:
@@ -11,6 +12,10 @@ addons:
     apt:
         packages:
             - cfitsio-dev
+before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update >/dev/null; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/cfitsio; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/healpix; fi
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia -e 'Pkg.clone(pwd()); Pkg.build("LibHealpix")'
