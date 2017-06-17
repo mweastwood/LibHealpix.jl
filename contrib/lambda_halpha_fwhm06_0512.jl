@@ -2,7 +2,7 @@ using LibHealpix
 using FITSIO
 using PyPlot
 
-filename = tempname()
+filename = tempname()*".fits"
 url = "https://lambda.gsfc.nasa.gov/data/foregrounds/halpha/lambda_halpha_fwhm06_0512.fits"
 local img
 try

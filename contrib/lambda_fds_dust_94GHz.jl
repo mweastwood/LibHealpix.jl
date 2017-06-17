@@ -2,18 +2,17 @@ using LibHealpix
 using FITSIO
 using PyPlot
 
-filename = tempname()
-filename = "/tmp/juliaNvhKXL"
+filename = tempname()*".fits"
 url = "https://lambda.gsfc.nasa.gov/data/foregrounds/FDS/lambda_fds_dust_94GHz.fits"
 local img
 try
-    #download(url, filename)
+    download(url, filename)
     fits = FITS(filename)
     hdu = fits[2]
     map = NestHealpixMap(read(hdu, "TEMPERATURE"))
     img = mollweide(map)
 finally
-    #isfile(filename) && rm(filename)
+    isfile(filename) && rm(filename)
 end
 
 figure(figsize=(10,5))

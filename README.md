@@ -5,7 +5,7 @@ LibHealpix.jl is a Julia wrapper of the Healpix library.
 The Healpix library defines a pixelization of the sphere that is equal-area (each pixel covers the
 same area as every other pixel) and isolatitude (pixels are arranged along rings of constant
 latitude). Healpix was born from the need to rapidly compute angular power spectra for Cosmic
-Microwave Background Experiments (ie. WMAP and Planck) and is widely used in astronomy and
+Microwave Background experiments (ie. WMAP and Planck) and is widely used in astronomy and
 astrophysics.
 
 [K.M. Górski, Eric Hivon, A.J. Banday, B.D. Wandelt, F.K. Hansen, M. Reinecke, M. Bartelmann, 2005,
