@@ -2,7 +2,7 @@
 
 ## v0.2.0
 
-*2017-06-17*
+*2017-06-18*
 
 * Complete package re-write. The package is now compatible with Julia v0.6 only.
 * `HealpixMap` has been split into `RingHealpixMap` and `NestHealpixMap`. Both of these are subtypes

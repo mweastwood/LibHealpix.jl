@@ -1,7 +1,5 @@
 # LibHealpix.jl
 
-![Healpix.jl logo](docs/src/assets/logo.png)
-
 LibHealpix.jl is a Julia wrapper of the Healpix library.
 
 The Healpix library defines a pixelization of the sphere that is equal-area (each pixel covers the
