@@ -1,7 +1,7 @@
 var documenterSearchIndex = {"docs": [
 
 {
-    "location": "index.html#",
+    "location": "#",
     "page": "Home",
     "title": "Home",
     "category": "page",
@@ -9,15 +9,31 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#LibHealpix.jl-Documentation-1",
+    "location": "#LibHealpix.jl-Documentation-1",
     "page": "Home",
     "title": "LibHealpix.jl Documentation",
     "category": "section",
-    "text": ""
+    "text": "LibHealpix.jl is a Julia wrapper of the Healpix library.The Healpix library defines a pixelization of the sphere that is equal-area (each pixel covers the same area as every other pixel) and isolatitude (pixels are arranged along rings of constant latitude). Healpix was born from the need to rapidly compute angular power spectra for Cosmic Microwave Background experiments (ie. WMAP and Planck) and is widely used in astronomy and astrophysics."
 },
 
 {
-    "location": "getting-started.html#",
+    "location": "#Ring-or-Nested?-1",
+    "page": "Home",
+    "title": "Ring or Nested?",
+    "category": "section",
+    "text": "Healpix maps come in two varieties: ring-ordered or nest-ordered.Ring-ordered Healpix maps are represented using the RingHealpixMap type in LibHealpix.jl. These maps have pixels arranged along rings of constant latitude, which allows the use of an FFT while computing a spherical harmonic transform. If you intend to use spherical harmonic transforms then you should use ring-ordered Healpix maps.(Image: A ring-ordered Healpix map)Nest-ordered Healpix maps are represented using the NestHealpixMap type in LibHealpix.jl. These maps are ordered such that pixels that are spatially nearby are also nearby in memory. Many pixel operations are much faster for nest-ordered Healpix maps than they are for ring-ordered Healpix maps.(Image: A nest-ordered Healpix map)"
+},
+
+{
+    "location": "#Examples-1",
+    "page": "Home",
+    "title": "Examples",
+    "category": "section",
+    "text": "Many astronomical maps are released as Healpix images. The following two maps show thermal dust and H-alpha emission respectively. To first order, dust traces the interstellar gas density, so bright regions in this map correspond to dense regions of the interstellar medium. On the other hand H-alpha emission traces ionized gas in the interstellar medium. These ionized regions tend to be sites of active star formation.Dust(Image: Dust Map)H-alpha(Image: Halpha Map)"
+},
+
+{
+    "location": "getting-started/#",
     "page": "Getting Started",
     "title": "Getting Started",
     "category": "page",
@@ -25,15 +41,23 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "getting-started.html#Getting-Started-1",
+    "location": "getting-started/#Getting-Started-1",
     "page": "Getting Started",
     "title": "Getting Started",
     "category": "section",
-    "text": ""
+    "text": "julia> Pkg.add(\"LibHealpix\")\njulia> Pkg.test(\"LibHealpix\")LibHealpix.jl is a registered Julia package and can be installed by running Pkg.add(\"LibHealpix\") from the Julia REPL. You can verify that the package is installed and functioning correctly by running Pkg.test(\"LibHealpix\")."
 },
 
 {
-    "location": "cookbook.html#",
+    "location": "getting-started/#Troubleshooting-the-Installation-1",
+    "page": "Getting Started",
+    "title": "Troubleshooting the Installation",
+    "category": "section",
+    "text": "Verify that libcfitsio, libchealpix, and libhealpix_cxx are all installed and available in the linker's search path.# On Ubuntu these dependencies can be installed using apt\n$ sudo apt-get update\n$ sudo apt-get install cfitsio-dev\n$ sudo apt-get install libchealpix-dev    # v16.04 and later only\n$ sudo apt-get install libhealpix-cxx-dev # v16.04 and later only\n\n# On OSX these dependencies can be installed using Homebrew\n$ brew update\n$ brew install homebrew/science/cfitsio\n$ brew install homebrew/science/healpixAfter these dependencies are installed make sure to rebuild the package by runningjulia> Pkg.build(\"LibHealpix\")If you continue to have problems installing the package, please open a Github issue. In the text please include the details of your operating system, Julia version, and LibHealpix.jl version."
+},
+
+{
+    "location": "cookbook/#",
     "page": "Cookbook",
     "title": "Cookbook",
     "category": "page",
@@ -41,47 +65,39 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "cookbook.html#Cookbook-1",
+    "location": "cookbook/#Cookbook-1",
     "page": "Cookbook",
     "title": "Cookbook",
     "category": "section",
-    "text": ""
+    "text": "This page contains a few examples that demonstrate how to work with LibHealpix.jl.  All of these examples should be preceded by using LibHealpix in order to load the package.DocTestSetup = quote\n    using LibHealpix\nend"
 },
 
 {
-    "location": "cookbook.html#Creating-a-Map-1",
+    "location": "cookbook/#Creating-a-Map-1",
     "page": "Cookbook",
     "title": "Creating a Map",
     "category": "section",
-    "text": "using LibHealpix\nnside = 16\nmap = HealpixMap(Float64, nside)\nfor i = 1:length(map)\n    map[i] = i\nend"
+    "text": "In this example we will create a low-resolution Healpix map. We will number the pixels and visualize it in the terminal using the mollweide function to create a Mollweide projected image of the map.julia> nside = 1 # lowest resolution map possible\n       map = RingHealpixMap(Int, nside)\n       map[:] = 1:length(map)\n       map\n12-element LibHealpix.RingHealpixMap{Int64}:\n  1\n  2\n  3\n  4\n  5\n  6\n  7\n  8\n  9\n 10\n 11\n 12\n\njulia> mollweide(map, (10, 20))\n10×20 Array{Int64,2}:\n 0   0   0   0   0   0   2   2  1  1   4   4   3   3   0   0   0   0   0  0\n 0   0   0   2   2   2   1   1  1  1   4   4   4   4   3   3   3   0   0  0\n 0   7   2   2   2   6   1   1  1  1   4   4   4   4   8   3   3   3   7  0\n 7   2   2   2   6   6   1   1  1  5   5   4   4   4   8   8   3   3   3  7\n 7   7   2   6   6   6   6   1  5  5   5   5   4   8   8   8   8   3   7  7\n 7   7  10   6   6   6   6   9  5  5   5   5  12   8   8   8   8  11   7  7\n 7  10  10  10   6   6   9   9  9  5   5  12  12  12   8   8  11  11  11  7\n 0   7  10  10  10   6   9   9  9  9  12  12  12  12   8  11  11  11   7  0\n 0   0   0  10  10  10   9   9  9  9  12  12  12  12  11  11  11   0   0  0\n 0   0   0   0   0   0  10  10  9  9  12  12  11  11   0   0   0   0   0  0"
 },
 
 {
-    "location": "cookbook.html#Spherical-Harmonic-Transforms-1",
+    "location": "cookbook/#Spherical-Harmonic-Transforms-1",
     "page": "Cookbook",
     "title": "Spherical Harmonic Transforms",
     "category": "section",
-    "text": "using LibHealpix\nlmax = mmax = 10\nalm = Alm(Complex128, lmax, mmax)\nfor m = 0:mmax, l = m:lmax\n    alm[l,m] = l + m\nend\nnside = 16\nmap = alm2map(alm, nside)\nblm = map2alm(map, lmax, mmax)"
+    "text": "Spherical harmonic transforms are accomplished using the map2alm and alm2map functions. In this example we will create a map from its spherical harmonic coefficients using alm2map, and then compute its spherical harmonic coefficients with map2alm. In the latter step notice that we can obtain more accuracy by using more iterations.julia> lmax = mmax = 1\n       alm = Alm(Complex128, lmax, mmax)\n       @lm alm[0, 0] = 1\n       @lm alm[1, 0] = 2\n       @lm alm[1, 1] = 0+3im\n       alm\n3-element LibHealpix.Alm{Complex{Float64}}:\n 1.0+0.0im\n 2.0+0.0im\n 0.0+3.0im\n\njulia> nside = 1\n       map = alm2map(alm, nside)\n12-element LibHealpix.RingHealpixMap{Float64}:\n  2.02611 \n  2.02611 \n -0.158984\n -0.158984\n  0.282095\n  2.35506 \n  0.282095\n -1.79087 \n  0.723173\n  0.723173\n -1.46192 \n -1.46192 \n\njulia> new_alm = map2alm(map, lmax, mmax)\n3-element LibHealpix.Alm{Complex{Float64}}:\n         1.0+0.0im    \n     1.77778+0.0im    \n 1.79636e-16+3.16667im\n\njulia> new_alm = map2alm(map, lmax, mmax, iterations=3)\n3-element LibHealpix.Alm{Complex{Float64}}:\n         1.0+0.0im    \n      1.9997+0.0im    \n 2.83224e-16+2.99997im"
 },
 
 {
-    "location": "cookbook.html#FITS-I/O-1",
+    "location": "cookbook/#FITS-I/O-1",
     "page": "Cookbook",
     "title": "FITS I/O",
     "category": "section",
-    "text": "using LibHealpix\nmap = readhealpix(\"map.fits\")\nwritehealpix(\"othermap.fits\", map)"
+    "text": "Healpix maps can be written to disk as a FITS image using the writehealpix function or read from disk using the readhealpix function. In this example we will generate a random Healpix map, write it to a temporary file, and then read it back from disk. The two maps should be identical.julia> nside = 256\n       map = NestHealpixMap(Float64, nside)\n       map[:] = rand(length(map))\n       filename = tempname()*\".fits\"\n       writehealpix(filename, map)\n       new_map = readhealpix(filename)\n       map == new_map\ntruenote: Note\nIf you run into errors reading a FITS-formatted Healpix image, it may be the case that the map is stored in a way that is inconsistent with the format defined by libchealpix. You should be able to manually read in the map using FITSIO.jl. You will need to find the appropriate HDU and table column in the FITS file."
 },
 
 {
-    "location": "cookbook.html#Visualization-1",
-    "page": "Cookbook",
-    "title": "Visualization",
-    "category": "section",
-    "text": "using LibHealpix\nusing PyPlot # for imshow(...)\nmap = HealpixMap(Float64, nside)\nfor i = 1:length(map)\n    map[i] = rand()\nend\nimg = mollweide(map)\nimshow(img)"
-},
-
-{
-    "location": "library.html#",
+    "location": "library/#",
     "page": "Library",
     "title": "Library",
     "category": "page",
@@ -89,7 +105,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Library-1",
+    "location": "library/#Library-1",
     "page": "Library",
     "title": "Library",
     "category": "section",
@@ -97,7 +113,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.nside2npix",
+    "location": "library/#LibHealpix.nside2npix",
     "page": "Library",
     "title": "LibHealpix.nside2npix",
     "category": "Function",
@@ -105,7 +121,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.npix2nside",
+    "location": "library/#LibHealpix.npix2nside",
     "page": "Library",
     "title": "LibHealpix.npix2nside",
     "category": "Function",
@@ -113,7 +129,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.nside2nring",
+    "location": "library/#LibHealpix.nside2nring",
     "page": "Library",
     "title": "LibHealpix.nside2nring",
     "category": "Function",
@@ -121,7 +137,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.ang2vec",
+    "location": "library/#LibHealpix.ang2vec",
     "page": "Library",
     "title": "LibHealpix.ang2vec",
     "category": "Function",
@@ -129,7 +145,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.vec2ang",
+    "location": "library/#LibHealpix.vec2ang",
     "page": "Library",
     "title": "LibHealpix.vec2ang",
     "category": "Function",
@@ -137,7 +153,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.nest2ring",
+    "location": "library/#LibHealpix.nest2ring",
     "page": "Library",
     "title": "LibHealpix.nest2ring",
     "category": "Function",
@@ -145,7 +161,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.ring2nest",
+    "location": "library/#LibHealpix.ring2nest",
     "page": "Library",
     "title": "LibHealpix.ring2nest",
     "category": "Function",
@@ -153,7 +169,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.ang2pix_nest",
+    "location": "library/#LibHealpix.ang2pix_nest",
     "page": "Library",
     "title": "LibHealpix.ang2pix_nest",
     "category": "Function",
@@ -161,7 +177,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.ang2pix_ring",
+    "location": "library/#LibHealpix.ang2pix_ring",
     "page": "Library",
     "title": "LibHealpix.ang2pix_ring",
     "category": "Function",
@@ -169,7 +185,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2ang_nest",
+    "location": "library/#LibHealpix.pix2ang_nest",
     "page": "Library",
     "title": "LibHealpix.pix2ang_nest",
     "category": "Function",
@@ -177,7 +193,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2ang_ring",
+    "location": "library/#LibHealpix.pix2ang_ring",
     "page": "Library",
     "title": "LibHealpix.pix2ang_ring",
     "category": "Function",
@@ -185,7 +201,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.vec2pix_nest",
+    "location": "library/#LibHealpix.vec2pix_nest",
     "page": "Library",
     "title": "LibHealpix.vec2pix_nest",
     "category": "Function",
@@ -193,7 +209,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.vec2pix_ring",
+    "location": "library/#LibHealpix.vec2pix_ring",
     "page": "Library",
     "title": "LibHealpix.vec2pix_ring",
     "category": "Function",
@@ -201,7 +217,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2vec_nest",
+    "location": "library/#LibHealpix.pix2vec_nest",
     "page": "Library",
     "title": "LibHealpix.pix2vec_nest",
     "category": "Function",
@@ -209,7 +225,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2vec_ring",
+    "location": "library/#LibHealpix.pix2vec_ring",
     "page": "Library",
     "title": "LibHealpix.pix2vec_ring",
     "category": "Function",
@@ -217,7 +233,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Pixel-Functions-1",
+    "location": "library/#Pixel-Functions-1",
     "page": "Library",
     "title": "Pixel Functions",
     "category": "section",
@@ -225,7 +241,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.HealpixMap",
+    "location": "library/#LibHealpix.HealpixMap",
     "page": "Library",
     "title": "LibHealpix.HealpixMap",
     "category": "Type",
@@ -233,7 +249,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.RingHealpixMap",
+    "location": "library/#LibHealpix.RingHealpixMap",
     "page": "Library",
     "title": "LibHealpix.RingHealpixMap",
     "category": "Type",
@@ -241,7 +257,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.NestHealpixMap",
+    "location": "library/#LibHealpix.NestHealpixMap",
     "page": "Library",
     "title": "LibHealpix.NestHealpixMap",
     "category": "Type",
@@ -249,7 +265,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.writehealpix",
+    "location": "library/#LibHealpix.writehealpix",
     "page": "Library",
     "title": "LibHealpix.writehealpix",
     "category": "Function",
@@ -257,7 +273,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.readhealpix",
+    "location": "library/#LibHealpix.readhealpix",
     "page": "Library",
     "title": "LibHealpix.readhealpix",
     "category": "Function",
@@ -265,7 +281,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.ang2pix",
+    "location": "library/#LibHealpix.ang2pix",
     "page": "Library",
     "title": "LibHealpix.ang2pix",
     "category": "Function",
@@ -273,7 +289,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2ang",
+    "location": "library/#LibHealpix.pix2ang",
     "page": "Library",
     "title": "LibHealpix.pix2ang",
     "category": "Function",
@@ -281,7 +297,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.vec2pix",
+    "location": "library/#LibHealpix.vec2pix",
     "page": "Library",
     "title": "LibHealpix.vec2pix",
     "category": "Function",
@@ -289,7 +305,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.pix2vec",
+    "location": "library/#LibHealpix.pix2vec",
     "page": "Library",
     "title": "LibHealpix.pix2vec",
     "category": "Function",
@@ -297,7 +313,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Healpix-Maps-1",
+    "location": "library/#Healpix-Maps-1",
     "page": "Library",
     "title": "Healpix Maps",
     "category": "section",
@@ -305,7 +321,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.Alm",
+    "location": "library/#LibHealpix.Alm",
     "page": "Library",
     "title": "LibHealpix.Alm",
     "category": "Type",
@@ -313,7 +329,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.lm",
+    "location": "library/#LibHealpix.lm",
     "page": "Library",
     "title": "LibHealpix.lm",
     "category": "Function",
@@ -321,7 +337,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.@lm",
+    "location": "library/#LibHealpix.@lm",
     "page": "Library",
     "title": "LibHealpix.@lm",
     "category": "Macro",
@@ -329,7 +345,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Spherical-Harmonic-Coefficients-1",
+    "location": "library/#Spherical-Harmonic-Coefficients-1",
     "page": "Library",
     "title": "Spherical Harmonic Coefficients",
     "category": "section",
@@ -337,7 +353,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.map2alm",
+    "location": "library/#LibHealpix.map2alm",
     "page": "Library",
     "title": "LibHealpix.map2alm",
     "category": "Function",
@@ -345,7 +361,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.alm2map",
+    "location": "library/#LibHealpix.alm2map",
     "page": "Library",
     "title": "LibHealpix.alm2map",
     "category": "Function",
@@ -353,7 +369,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Spherical-Harmonic-Transforms-1",
+    "location": "library/#Spherical-Harmonic-Transforms-1",
     "page": "Library",
     "title": "Spherical Harmonic Transforms",
     "category": "section",
@@ -361,7 +377,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#LibHealpix.mollweide",
+    "location": "library/#LibHealpix.mollweide",
     "page": "Library",
     "title": "LibHealpix.mollweide",
     "category": "Function",
@@ -369,7 +385,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "library.html#Visualization-1",
+    "location": "library/#Visualization-1",
     "page": "Library",
     "title": "Visualization",
     "category": "section",
