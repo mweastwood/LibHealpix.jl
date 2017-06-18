@@ -32,5 +32,5 @@ Pkg.add("LibHealpix")
 
 [![Dust Map](docs/src/assets/lambda_fds_dust_94GHz.png)](https://lambda.gsfc.nasa.gov/product/foreground/dust_map.cfm)
 
-[![Halpha Map](assets/lambda_halpha_fwhm06_0512.png)](https://lambda.gsfc.nasa.gov/product/foreground/halpha_map.cfm)
+[![Halpha Map](docs/src/assets/lambda_halpha_fwhm06_0512.png)](https://lambda.gsfc.nasa.gov/product/foreground/halpha_map.cfm)
 
