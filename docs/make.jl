@@ -18,6 +18,9 @@ using Documenter, LibHealpix
 makedocs(
     format = :html,
     sitename = "LibHealpix.jl",
+    authors = "Michael Eastwood",
+    linkcheck = true,
+    html_prettyurls = !("local" in ARGS),
     pages = [
         "Home" => "index.md",
         "Manual" => [

@@ -16,7 +16,7 @@ finally
 end
 
 figure(figsize=(10,5))
-imshow(log.(img), origin="lower", interpolation="nearest", cmap=get_cmap("magma"))
+imshow(log.(img), origin="upper", interpolation="nearest", cmap=get_cmap("magma"))
 gca()[:set_aspect]("equal")
 tight_layout()
 axis("off")

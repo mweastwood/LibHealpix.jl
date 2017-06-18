@@ -1,5 +1,7 @@
 # LibHealpix.jl
 
+![Healpix.jl logo](docs/src/assets/logo.png)
+
 LibHealpix.jl is a Julia wrapper of the Healpix library.
 
 The Healpix library defines a pixelization of the sphere that is equal-area (each pixel covers the
@@ -28,7 +30,7 @@ Pkg.add("LibHealpix")
 
 ## Examples
 
-[![Dust Map](contrib/lambda_fds_dust_94GHz.png)](https://lambda.gsfc.nasa.gov/product/foreground/dust_map.cfm)
+[![Dust Map](docs/src/assets/lambda_fds_dust_94GHz.png)](https://lambda.gsfc.nasa.gov/product/foreground/dust_map.cfm)
 
-[![Halpha Map](contrib/lambda_halpha_fwhm06_0512.png)](https://lambda.gsfc.nasa.gov/product/foreground/halpha_map.cfm)
+[![Halpha Map](assets/lambda_halpha_fwhm06_0512.png)](https://lambda.gsfc.nasa.gov/product/foreground/halpha_map.cfm)
 
