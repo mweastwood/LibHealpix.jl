@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Cookbook · LibHealpix.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/highlightjs/default.css" rel="stylesheet" type="text/css"/><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><a href="../index.html"><img class="logo" src="../assets/logo.png" alt="LibHealpix.jl logo"/></a><h1>LibHealpix.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><span class="toctext">Manual</span><ul><li><a class="toctext" href="../getting-started/">Getting Started</a></li><li class="current"><a class="toctext" href>Cookbook</a><ul class="internal"><li><a class="toctext" href="#Creating-a-Map-1">Creating a Map</a></li><li><a class="toctext" href="#Spherical-Harmonic-Transforms-1">Spherical Harmonic Transforms</a></li><li><a class="toctext" href="#FITS-I/O-1">FITS I/O</a></li></ul></li></ul></li><li><a class="toctext" href="../library/">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li>Manual</li><li><a href>Cookbook</a></li></ul><a class="edit-page" href="https://github.com/mweastwood/LibHealpix.jl/tree/c55da9ea0171e52d1582fdffda8107f338033c72/docs/src/cookbook.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Cookbook</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Cookbook-1" href="#Cookbook-1">Cookbook</a></h1><p>This page contains a few examples that demonstrate how to work with LibHealpix.jl.  All of these examples should be preceded by <code>using LibHealpix</code> in order to load the package.</p><h2><a class="nav-anchor" id="Creating-a-Map-1" href="#Creating-a-Map-1">Creating a Map</a></h2><p>In this example we will create a low-resolution Healpix map. We will number the pixels and visualize it in the terminal using the <a href="../library/#LibHealpix.mollweide"><code>mollweide</code></a> function to create a Mollweide projected image of the map.</p><pre><code class="language-julia-repl">julia&gt; nside = 1 # lowest resolution map possible
+       map = RingHealpixMap(Int, nside)
+       map[:] = 1:length(map)
+       map
+12-element LibHealpix.RingHealpixMap{Int64}:
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+
+julia&gt; mollweide(map, (10, 20))
+10×20 Array{Int64,2}:
+ 0   0   0   0   0   0   2   2  1  1   4   4   3   3   0   0   0   0   0  0
+ 0   0   0   2   2   2   1   1  1  1   4   4   4   4   3   3   3   0   0  0
+ 0   7   2   2   2   6   1   1  1  1   4   4   4   4   8   3   3   3   7  0
+ 7   2   2   2   6   6   1   1  1  5   5   4   4   4   8   8   3   3   3  7
+ 7   7   2   6   6   6   6   1  5  5   5   5   4   8   8   8   8   3   7  7
+ 7   7  10   6   6   6   6   9  5  5   5   5  12   8   8   8   8  11   7  7
+ 7  10  10  10   6   6   9   9  9  5   5  12  12  12   8   8  11  11  11  7
+ 0   7  10  10  10   6   9   9  9  9  12  12  12  12   8  11  11  11   7  0
+ 0   0   0  10  10  10   9   9  9  9  12  12  12  12  11  11  11   0   0  0
+ 0   0   0   0   0   0  10  10  9  9  12  12  11  11   0   0   0   0   0  0</code></pre><h2><a class="nav-anchor" id="Spherical-Harmonic-Transforms-1" href="#Spherical-Harmonic-Transforms-1">Spherical Harmonic Transforms</a></h2><p>Spherical harmonic transforms are accomplished using the <a href="../library/#LibHealpix.map2alm"><code>map2alm</code></a> and <a href="../library/#LibHealpix.alm2map"><code>alm2map</code></a> functions. In this example we will create a map from its spherical harmonic coefficients using <a href="../library/#LibHealpix.alm2map"><code>alm2map</code></a>, and then compute its spherical harmonic coefficients with <a href="../library/#LibHealpix.map2alm"><code>map2alm</code></a>. In the latter step notice that we can obtain more accuracy by using more iterations.</p><pre><code class="language-julia">julia&gt; lmax = mmax = 1
+       alm = Alm(Complex128, lmax, mmax)
+       @lm alm[0, 0] = 1
+       @lm alm[1, 0] = 2
+       @lm alm[1, 1] = 0+3im
+       alm
+3-element LibHealpix.Alm{Complex{Float64}}:
+ 1.0+0.0im
+ 2.0+0.0im
+ 0.0+3.0im
+
+julia&gt; nside = 1
+       map = alm2map(alm, nside)
+12-element LibHealpix.RingHealpixMap{Float64}:
+  2.02611 
+  2.02611 
+ -0.158984
+ -0.158984
+  0.282095
+  2.35506 
+  0.282095
+ -1.79087 
+  0.723173
+  0.723173
+ -1.46192 
+ -1.46192 
+
+julia&gt; new_alm = map2alm(map, lmax, mmax)
+3-element LibHealpix.Alm{Complex{Float64}}:
+         1.0+0.0im    
+     1.77778+0.0im    
+ 1.79636e-16+3.16667im
+
+julia&gt; new_alm = map2alm(map, lmax, mmax, iterations=3)
+3-element LibHealpix.Alm{Complex{Float64}}:
+         1.0+0.0im    
+      1.9997+0.0im    
+ 2.83224e-16+2.99997im</code></pre><h2><a class="nav-anchor" id="FITS-I/O-1" href="#FITS-I/O-1">FITS I/O</a></h2><p>Healpix maps can be written to disk as a FITS image using the <a href="../library/#LibHealpix.writehealpix"><code>writehealpix</code></a> function or read from disk using the <a href="../library/#LibHealpix.readhealpix"><code>readhealpix</code></a> function. In this example we will generate a random Healpix map, write it to a temporary file, and then read it back from disk. The two maps should be identical.</p><pre><code class="language-julia-repl">julia&gt; nside = 256
+       map = NestHealpixMap(Float64, nside)
+       map[:] = rand(length(map))
+       filename = tempname()*&quot;.fits&quot;
+       writehealpix(filename, map)
+       new_map = readhealpix(filename)
+       map == new_map
+true</code></pre><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p>If you run into errors reading a FITS-formatted Healpix image, it may be the case that the map is stored in a way that is inconsistent with the format defined by <code>libchealpix</code>. You should be able to manually read in the map using <a href="https://github.com/JuliaAstro/FITSIO.jl">FITSIO.jl</a>. You will need to find the appropriate HDU and table column in the FITS file.</p></div></div><footer><hr/><a class="previous" href="../getting-started/"><span class="direction">Previous</span><span class="title">Getting Started</span></a><a class="next" href="../library/"><span class="direction">Next</span><span class="title">Library</span></a></footer></article></body></html>
