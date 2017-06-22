@@ -2,13 +2,13 @@ using BinDeps
 
 BinDeps.@setup
 
-# Healpix
-
+libcfitsio        = library_dependency("libcfitsio")
 libchealpix       = library_dependency("libchealpix")
 libhealpix_cxx    = library_dependency("libhealpix_cxx")
 libhealpixwrapper = library_dependency("libhealpixwrapper")
 
-provides(AptGet, Dict("libchealpix-dev" => libchealpix,
+provides(AptGet, Dict("libcfitsio3-dev" => libcfitsio,
+                      "libchealpix-dev" => libchealpix,
                       "libhealpix-cxx-dev" => libhealpix_cxx))
 
 version = "3.30"
