@@ -11,7 +11,7 @@ provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
                       "libchealpix-dev"    => libchealpix,     # Xenial and later only
                       "libhealpix-cxx-dev" => libhealpix_cxx)) # Xenial and later only
 
-@osx_only begin
+if is_apple()
     using Homebrew
     provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
     provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
