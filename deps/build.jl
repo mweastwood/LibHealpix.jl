@@ -3,13 +3,19 @@ using BinDeps
 BinDeps.@setup
 
 libcfitsio        = library_dependency("libcfitsio")
-libchealpix       = library_dependency("libchealpix")
-libhealpix_cxx    = library_dependency("libhealpix_cxx")
-libhealpixwrapper = library_dependency("libhealpixwrapper")
+libchealpix       = library_dependency("libchealpix", depends=[libcfisio])
+libhealpix_cxx    = library_dependency("libhealpix_cxx", depends=[libcfisio])
+libhealpixwrapper = library_dependency("libhealpixwrapper", depends=[libhealpix_cxx])
 
-provides(AptGet, Dict("libcfitsio3-dev" => libcfitsio,
-                      "libchealpix-dev" => libchealpix,
-                      "libhealpix-cxx-dev" => libhealpix_cxx))
+provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
+                      "libchealpix-dev"    => libchealpix,     # Xenial and later only
+                      "libhealpix-cxx-dev" => libhealpix_cxx)) # Xenial and later only
+
+@osx_only begin
+    using Homebrew
+    provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
+    provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
+end
 
 version = "3.30"
 date = "2015Oct08"
@@ -50,6 +56,9 @@ provides(SimpleBuild,
               `make`
               `make install`
           end), libhealpixwrapper)
+
+# Binary providers on linux?
+# Ref: https://github.com/JuliaLang/BinDeps.jl/pull/163
 
 BinDeps.@install Dict(:libchealpix => :libchealpix, :libhealpixwrapper => :libhealpixwrapper)
 

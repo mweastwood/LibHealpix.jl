@@ -3,4 +3,5 @@ BinDeps
 FITSIO 0.10.0
 MacroTools
 StaticArrays 0.5.1
+@osx Homebrew
 
