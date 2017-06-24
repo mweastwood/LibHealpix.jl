@@ -3,8 +3,8 @@ using BinDeps
 BinDeps.@setup
 
 libcfitsio        = library_dependency("libcfitsio")
-libchealpix       = library_dependency("libchealpix", depends=[libcfisio])
-libhealpix_cxx    = library_dependency("libhealpix_cxx", depends=[libcfisio])
+libchealpix       = library_dependency("libchealpix", depends=[libcfitsio])
+libhealpix_cxx    = library_dependency("libhealpix_cxx", depends=[libcfitsio])
 libhealpixwrapper = library_dependency("libhealpixwrapper", depends=[libhealpix_cxx])
 
 provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
