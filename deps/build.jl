@@ -43,17 +43,25 @@ provides(SimpleBuild,
               @build_steps begin
                   ChangeDirectory(joinpath(libhealpix_src_directory, "src", "cxx", "autotools"))
                   `autoreconf --install`
-                  `./configure --prefix=$(usrdir(libchealpix))`
+                  `./configure --prefix=$(usrdir(libhealpix_cxx))`
                   `make install`
               end
           end), libhealpix_cxx)
+
+pkg_config_path = get(ENV, "PKG_CONFIG_PATH", "")
+deps_pkg_config_path = joinpath(libdir(libhealpix_cxx), "pkgconfig")
+pkg_config_path = string(deps_pkg_config_path, ":", pkg_config_path)
+if is_apple()
+    brew_pkg_config_path = joinpath(Homebrew.prefix(), "lib", "pkgconfig")
+    pkg_config_path = string(brew_pkg_config_path, ":", pkg_config_path)
+end
 
 libhealpixwrapper_src_directory = joinpath(BinDeps.depsdir(libhealpixwrapper), "src", "wrapper")
 
 provides(SimpleBuild,
          (@build_steps begin
               ChangeDirectory(libhealpixwrapper_src_directory)
-              `make`
+              `make PKG_CONFIG_PATH=$pkg_config_path`
               `make install`
           end), libhealpixwrapper)
 
