@@ -31,11 +31,11 @@ LIB_DIR  := $(ROOT_DIR)/../../usr/lib
 all: $(SHARED_LIBRARY)
 
 wrapper.o: wrapper.cpp
-	EXTRA_CFLAGS=`PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags chealpix healpix_cxx)`; \
+	EXTRA_CFLAGS=`PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags chealpix healpix_cxx`; \
 	$(CXX) $(CFLAGS) $$EXTRA_CFLAGS wrapper.cpp
 
 $(SHARED_LIBRARY): wrapper.o
-	EXTRA_LIBS=`PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs chealpix healpix_cxx)`; \
+	EXTRA_LIBS=`PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs chealpix healpix_cxx`; \
 	$(CXX) $(LDFLAGS) -Wl,-rpath,$(LIB_DIR) $$EXTRA_LIBS -shared -o $(SHARED_LIBRARY) wrapper.o
 
 clean:

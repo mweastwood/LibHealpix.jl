@@ -15,6 +15,13 @@ if is_apple()
     using Homebrew
     provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
     provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
+
+    # We need pkg-config to compile the wrapper, but we can grab that from Homebrew as well
+    try
+        run(`pkg-config --version`)
+    catch
+        Homebrew.add("pkg-config")
+    end
 end
 
 version = "3.30"
