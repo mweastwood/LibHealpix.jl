@@ -55,12 +55,22 @@ provides(SimpleBuild,
               end
           end), libhealpix_cxx)
 
+function joinpath_variable(path1, path2)
+    if path1 == ""
+        return path2
+    elseif path2 == ""
+        return path1
+    else
+        return string(path1, ":", path2)
+    end
+end
+
 pkg_config_path = get(ENV, "PKG_CONFIG_PATH", "")
 deps_pkg_config_path = joinpath(libdir(libhealpix_cxx), "pkgconfig")
-pkg_config_path = string(deps_pkg_config_path, ":", pkg_config_path)
+pkg_config_path = joinpath_variable(deps_pkg_config_path, pkg_config_path)
 if is_apple()
     brew_pkg_config_path = joinpath(Homebrew.prefix(), "lib", "pkgconfig")
-    pkg_config_path = string(brew_pkg_config_path, ":", pkg_config_path)
+    pkg_config_path = joinpath_variable(brew_pkg_config_path, pkg_config_path)
 end
 
 libhealpixwrapper_src_directory = joinpath(BinDeps.depsdir(libhealpixwrapper), "src", "wrapper")
