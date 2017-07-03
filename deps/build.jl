@@ -15,14 +15,56 @@ if is_apple()
     using Homebrew
     provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
     provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
-
-    # We need pkg-config to compile the wrapper, but we can grab that from Homebrew as well
     try
         run(`pkg-config --version`)
     catch
         Homebrew.add("pkg-config")
     end
 end
+
+function ⊕(path1, path2)
+    if path1 == ""
+        return path2
+    elseif path2 == ""
+        return path1
+    else
+        return string(path1, ":", path2)
+    end
+end
+
+usr = joinpath(BinDeps.depsdir(libhealpixwrapper), "usr")
+libs    = joinpath(usr, "lib")
+headers = joinpath(usr, "include")
+
+c_include_path = headers ⊕ get(ENV, "C_INCLUDE_PATH", "")
+cplus_include_path = headers ⊕ get(ENV, "CPLUS_INCLUDE_PATH", "")
+ld_library_path = libs ⊕  get(ENV, "LD_LIBRARY_PATH", "")
+pkg_config_path = joinpath(libs, "pkgconfig") ⊕ get(ENV, "PKG_CONFIG_PATH", "")
+
+if is_apple()
+    pkg_config_path = joinpath(Homebrew.prefix(), "lib", "pkgconfig") ⊕ pkg_config_path
+end
+
+env = copy(ENV)
+env["C_INCLUDE_PATH"] = c_include_path
+env["CPLUS_INCLUDE_PATH"] = cplus_include_path
+env["LD_LIBRARY_PATH"] = ld_library_path
+env["PKG_CONFIG_PATH"] = pkg_config_path
+
+url = "http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3410.tar.gz"
+libcfitsio_src_directory = joinpath(BinDeps.depsdir(libcfitsio), "src", "cfitsio")
+
+provides(Sources, URI(url), libcfitsio, unpacked_dir="cfitsio")
+
+provides(SimpleBuild,
+         (@build_steps begin
+              GetSources(libcfitsio)
+              @build_steps begin
+                  ChangeDirectory(joinpath(libcfitsio_src_directory))
+                  `./configure --prefix=$usr`
+                  `make shared install`
+              end
+          end), libcfitsio)
 
 version = "3.30"
 date = "2015Oct08"
@@ -38,9 +80,9 @@ provides(SimpleBuild,
               GetSources(libchealpix)
               @build_steps begin
                   ChangeDirectory(joinpath(libhealpix_src_directory, "src", "C", "autotools"))
-                  `autoreconf --install`
-                  `./configure --prefix=$(usrdir(libchealpix))`
-                  `make install`
+                  setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
+                  setenv(`./configure --prefix=$usr`, env)
+                  setenv(`make install LDFLAGS="-Wl,-rpath,$libs"`, env)
               end
           end), libchealpix)
 
@@ -49,29 +91,11 @@ provides(SimpleBuild,
               GetSources(libchealpix)
               @build_steps begin
                   ChangeDirectory(joinpath(libhealpix_src_directory, "src", "cxx", "autotools"))
-                  `autoreconf --install`
-                  `./configure --prefix=$(usrdir(libhealpix_cxx))`
-                  `make install`
+                  setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
+                  setenv(`./configure --prefix=$usr`, env)
+                  setenv(`make install LDFLAGS="-Wl,-rpath,$libs"`, env)
               end
           end), libhealpix_cxx)
-
-function joinpath_variable(path1, path2)
-    if path1 == ""
-        return path2
-    elseif path2 == ""
-        return path1
-    else
-        return string(path1, ":", path2)
-    end
-end
-
-pkg_config_path = get(ENV, "PKG_CONFIG_PATH", "")
-deps_pkg_config_path = joinpath(libdir(libhealpix_cxx), "pkgconfig")
-pkg_config_path = joinpath_variable(deps_pkg_config_path, pkg_config_path)
-if is_apple()
-    brew_pkg_config_path = joinpath(Homebrew.prefix(), "lib", "pkgconfig")
-    pkg_config_path = joinpath_variable(brew_pkg_config_path, pkg_config_path)
-end
 
 libhealpixwrapper_src_directory = joinpath(BinDeps.depsdir(libhealpixwrapper), "src", "wrapper")
 
