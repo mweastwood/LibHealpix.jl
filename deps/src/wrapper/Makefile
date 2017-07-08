@@ -36,7 +36,7 @@ wrapper.o: wrapper.cpp
 
 $(SHARED_LIBRARY): wrapper.o
 	EXTRA_LIBS=`PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs chealpix healpix_cxx`; \
-	$(CXX) $(LDFLAGS) -Wl,-rpath,$(LIB_DIR) $$EXTRA_LIBS -shared -o $(SHARED_LIBRARY) wrapper.o
+	$(CXX) $(LDFLAGS) -Wl,-rpath,\$$ORIGIN $$EXTRA_LIBS -shared -o $(SHARED_LIBRARY) wrapper.o
 
 clean:
 	-rm -f wrapper.o

@@ -51,6 +51,8 @@ env["CPLUS_INCLUDE_PATH"] = cplus_include_path
 env["LD_LIBRARY_PATH"] = ld_library_path
 env["PKG_CONFIG_PATH"] = pkg_config_path
 
+ORIGIN = raw"\$$ORIGIN"
+
 url = "http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3410.tar.gz"
 libcfitsio_src_directory = joinpath(BinDeps.depsdir(libcfitsio), "src", "cfitsio")
 
@@ -82,7 +84,9 @@ provides(SimpleBuild,
                   ChangeDirectory(joinpath(libhealpix_src_directory, "src", "C", "autotools"))
                   setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
                   setenv(`./configure --prefix=$usr`, env)
-                  setenv(`make install LDFLAGS="-Wl,-rpath,$libs"`, env)
+                  # Note to self: I have no idea why I need the extra \$ here and not for
+                  # libhealpix_cxx.so below. It appears to be necessary though.
+                  setenv(`make install LDFLAGS='-Wl,-rpath,\$$ORIGIN'`, env)
               end
           end), libchealpix)
 
@@ -93,7 +97,7 @@ provides(SimpleBuild,
                   ChangeDirectory(joinpath(libhealpix_src_directory, "src", "cxx", "autotools"))
                   setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
                   setenv(`./configure --prefix=$usr`, env)
-                  setenv(`make install LDFLAGS="-Wl,-rpath,$libs"`, env)
+                  setenv(`make install LDFLAGS="-Wl,-rpath,$ORIGIN"`, env)
               end
           end), libhealpix_cxx)
 

@@ -43,4 +43,5 @@ $JULIA -e 'Pkg.add("BinDeps")'
 $JULIA -e 'Pkg.clone("https://github.com/mweastwood/LibHealpix.jl.git")'
 $JULIA -e 'Pkg.checkout("LibHealpix", "build-system")'
 $JULIA -e 'Pkg.build("LibHealpix")'
+$JULIA -e 'Pkg.test("LibHealpix")'
 
