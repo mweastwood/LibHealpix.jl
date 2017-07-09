@@ -129,14 +129,20 @@ if has_pkg_config
               end), libhealpixwrapper)
 end
 
-provides(Binaries,
-         URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.1-0.tar.gz"),
-         [libcfitsio, libchealpix, libhealpix_cxx, libhealpixwrapper],
-         SHA="c5ac81b6895d567081cfecc0e29567ff9c484a64c1448f7aaca7842e390cefff",
-         os=:Linux)
+if Sys.ARCH == :x86_64
+    # TODO: cross-compile for x86
+    provides(Binaries,
+             URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.1-0.tar.gz"),
+             [libcfitsio, libchealpix, libhealpix_cxx, libhealpixwrapper],
+             SHA="c5ac81b6895d567081cfecc0e29567ff9c484a64c1448f7aaca7842e390cefff",
+             os=:Linux)
+end
 
 # https://github.com/JuliaLang/BinDeps.jl/pull/163
 is_linux() && push!(BinDeps.defaults, BinDeps.Binaries)
-
-BinDeps.@install Dict(:libchealpix => :libchealpix, :libhealpixwrapper => :libhealpixwrapper)
+try
+    BinDeps.@install Dict(:libchealpix => :libchealpix, :libhealpixwrapper => :libhealpixwrapper)
+finally
+    is_linux() && pop!(BinDeps.defaults)
+end
 
