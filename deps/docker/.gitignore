@@ -1,4 +1,3 @@
-*.so*
-*.tar.gz
+dependencies-*.tar.gz
 /usr
 

@@ -16,6 +16,13 @@ catch
     false
 end
 
+has_libtool = if is_linux()
+    # TODO: a more thorough search for libtool.m4?
+    isfile("/usr/share/aclocal/libtool.m4")
+else
+    false
+end
+
 provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
                       "libchealpix-dev"    => libchealpix,     # Xenial and later only
                       "libhealpix-cxx-dev" => libhealpix_cxx)) # Xenial and later only
@@ -24,7 +31,10 @@ if is_apple()
     using Homebrew
     provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
     provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
-    has_pkg_config || Homebrew.add("pkg-config")
+    if !has_pkg_config
+        Homebrew.add("pkg-config")
+        has_pkg_config = true
+    end
 end
 
 function ⊕(path1, path2)
@@ -82,43 +92,47 @@ libhealpix_src_directory = joinpath(BinDeps.depsdir(libchealpix), "src", "Healpi
 provides(Sources, URI(url), [libchealpix, libhealpix_cxx, libhealpixwrapper],
          unpacked_dir="Healpix_$version")
 
-provides(SimpleBuild,
-         (@build_steps begin
-              GetSources(libchealpix)
-              @build_steps begin
-                  ChangeDirectory(joinpath(libhealpix_src_directory, "src", "C", "autotools"))
-                  setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
-                  setenv(`./configure --prefix=$usr`, env)
-                  # Note to self: I have no idea why I need the extra \$ here and not for
-                  # libhealpix_cxx.so below. It appears to be necessary though.
-                  setenv(`make install LDFLAGS='-Wl,-rpath,\$$ORIGIN'`, env)
-              end
-          end), libchealpix)
+if has_libtool
+    provides(SimpleBuild,
+             (@build_steps begin
+                  GetSources(libchealpix)
+                  @build_steps begin
+                      ChangeDirectory(joinpath(libhealpix_src_directory, "src", "C", "autotools"))
+                      setenv(`autoreconf --install`, env)
+                      setenv(`./configure --prefix=$usr`, env)
+                      # Note to self: I have no idea why I need the extra \$ here and not for
+                      # libhealpix_cxx.so below. It appears to be necessary though.
+                      setenv(`make install LDFLAGS='-Wl,-rpath,\$$ORIGIN'`, env)
+                  end
+              end), libchealpix)
 
-provides(SimpleBuild,
-         (@build_steps begin
-              GetSources(libchealpix)
-              @build_steps begin
-                  ChangeDirectory(joinpath(libhealpix_src_directory, "src", "cxx", "autotools"))
-                  setenv(`autoreconf --install`, env) # user might not be able to run `autoreconf`
-                  setenv(`./configure --prefix=$usr`, env)
-                  setenv(`make install LDFLAGS="-Wl,-rpath,$ORIGIN"`, env)
-              end
-          end), libhealpix_cxx)
+    provides(SimpleBuild,
+             (@build_steps begin
+                  GetSources(libchealpix)
+                  @build_steps begin
+                      ChangeDirectory(joinpath(libhealpix_src_directory, "src", "cxx", "autotools"))
+                      setenv(`autoreconf --install`, env)
+                      setenv(`./configure --prefix=$usr`, env)
+                      setenv(`make install LDFLAGS="-Wl,-rpath,$ORIGIN"`, env)
+                  end
+              end), libhealpix_cxx)
+end
 
 libhealpixwrapper_src_directory = joinpath(BinDeps.depsdir(libhealpixwrapper), "src", "wrapper")
 
-provides(SimpleBuild,
-         (@build_steps begin
-              ChangeDirectory(libhealpixwrapper_src_directory)
-              `make PKG_CONFIG_PATH=$pkg_config_path`
-              `make install`
-          end), libhealpixwrapper)
+if has_pkg_config
+    provides(SimpleBuild,
+             (@build_steps begin
+                  ChangeDirectory(libhealpixwrapper_src_directory)
+                  `make PKG_CONFIG_PATH=$pkg_config_path`
+                  `make install`
+              end), libhealpixwrapper)
+end
 
 provides(Binaries,
          URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.1-0.tar.gz"),
          [libcfitsio, libchealpix, libhealpix_cxx, libhealpixwrapper],
-         SHA="243d0b5373394050edb99555a0c0c351ee922be29419c523d45b0f7d1486288d",
+         SHA="c5ac81b6895d567081cfecc0e29567ff9c484a64c1448f7aaca7842e390cefff",
          os=:Linux)
 
 # https://github.com/JuliaLang/BinDeps.jl/pull/163
