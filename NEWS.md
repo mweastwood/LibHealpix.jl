@@ -2,11 +2,14 @@
 
 ## v0.2.1
 
+*2017-07-09*
+
 * The package build system has been revamped.
 * `cfitsio` is now correctly treated as a dependency of this package.
 * On OSX the package will install `healpix` and `cfitsio` using `Homebrew.jl`.
 * On Linux, we can fall back to pre-compiled shared libraries under certain conditions.
-* Pre-compiled libraries are hosted at: https://bintray.com/mweastwood/LibHealpix.jl/dependencies
+* Pre-compiled libraries (x86_64 only) are hosted at:
+  https://bintray.com/mweastwood/LibHealpix.jl/dependencies
 
 ## v0.2.0
 
