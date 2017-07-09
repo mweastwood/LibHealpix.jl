@@ -11,11 +11,7 @@ dist: trusty
 addons:
     apt:
         packages:
-            - cfitsio-dev
-before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update >/dev/null; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/cfitsio; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/healpix; fi
+            - libcfitsio3-dev
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia -e 'Pkg.clone(pwd()); Pkg.build("LibHealpix")'
