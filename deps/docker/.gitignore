@@ -1,1 +1,4 @@
 *.so*
+*.tar.gz
+/usr
+

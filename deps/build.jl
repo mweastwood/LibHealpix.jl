@@ -9,6 +9,13 @@ libhealpix_cxx    = library_dependency("libhealpix_cxx", aliases=["libhealpix_cx
                                        depends=[libcfitsio])
 libhealpixwrapper = library_dependency("libhealpixwrapper", depends=[libhealpix_cxx])
 
+has_pkg_config = try
+    readstring(`pkg-config --version`)
+    true
+catch
+    false
+end
+
 provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
                       "libchealpix-dev"    => libchealpix,     # Xenial and later only
                       "libhealpix-cxx-dev" => libhealpix_cxx)) # Xenial and later only
@@ -17,11 +24,7 @@ if is_apple()
     using Homebrew
     provides(Homebrew.HB, "homebrew/science/cfitsio", libcfitsio, os=:Darwin)
     provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
-    try
-        run(`pkg-config --version`)
-    catch
-        Homebrew.add("pkg-config")
-    end
+    has_pkg_config || Homebrew.add("pkg-config")
 end
 
 function ⊕(path1, path2)
@@ -112,24 +115,14 @@ provides(SimpleBuild,
               `make install`
           end), libhealpixwrapper)
 
-# Binary providers on linux?
-# Ref: https://github.com/JuliaLang/BinDeps.jl/pull/163
-
-provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libcfitsio.so.5"),
-         [libcfitsio], SHA="d4cdf93b8ffe1612ba2fab061e30d79dbdac185ad09929ae9580c54301d6cf4b",
+provides(Binaries,
+         URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.1-0.tar.gz"),
+         [libcfitsio, libchealpix, libhealpix_cxx, libhealpixwrapper],
+         SHA="243d0b5373394050edb99555a0c0c351ee922be29419c523d45b0f7d1486288d",
          os=:Linux)
 
-provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libchealpix.so.0"),
-         [libchealpix], SHA="15166f90f06b0d4ab37478ded3468f7a89cf86138cbf036c105103dc95e2a845",
-         os=:Linux)
-
-provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libhealpix_cxx.so.0"),
-         [libhealpix_cxx], SHA="8f8cf2ee032297fd38d2587e5410426d56edd672d0547dc56e329c732b697f5a",
-         os=:Linux)
-
-provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libhealpixwrapper.so"),
-         [libhealpixwrapper], SHA="5ff014209d8841a4da49222d40eecadac23bec6e6d43da3c3a4fdab1f4886e64",
-         os=:Linux)
+# https://github.com/JuliaLang/BinDeps.jl/pull/163
+is_linux() && push!(BinDeps.defaults, BinDeps.Binaries)
 
 BinDeps.@install Dict(:libchealpix => :libchealpix, :libhealpixwrapper => :libhealpixwrapper)
 

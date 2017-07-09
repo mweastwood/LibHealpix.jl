@@ -7,3 +7,5 @@ up in this directory. Then upload those files to bintray using `./upload_to_bint
 Don't forget to publish the files when everything is ready by going to
 https://bintray.com/mweastwood/LibHealpix.jl
 
+Finally make sure to update the SHA checksum and URL in the build.jl script.
+
