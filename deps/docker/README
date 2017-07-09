@@ -2,5 +2,8 @@ This collection of scripts is intended to simplify the process of distributing p
 LibHealpix.jl's dependencies.
 
 You should be able to just run `./build_in_docker.sh` and the shared libraries will eventually show
-up in this directory.
+up in this directory. Then upload those files to bintray using `./upload_to_bintray.sh`.
+
+Don't forget to publish the files when everything is ready by going to
+https://bintray.com/mweastwood/LibHealpix.jl
 

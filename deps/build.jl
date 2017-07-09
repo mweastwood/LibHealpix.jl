@@ -2,9 +2,11 @@ using BinDeps
 
 BinDeps.@setup
 
-libcfitsio        = library_dependency("libcfitsio")
-libchealpix       = library_dependency("libchealpix", depends=[libcfitsio])
-libhealpix_cxx    = library_dependency("libhealpix_cxx", depends=[libcfitsio])
+libcfitsio        = library_dependency("libcfitsio", aliases=["libcfitsio.so.5"])
+libchealpix       = library_dependency("libchealpix", aliases=["libchealpix.so.0"],
+                                       depends=[libcfitsio])
+libhealpix_cxx    = library_dependency("libhealpix_cxx", aliases=["libhealpix_cxx.so.0"],
+                                       depends=[libcfitsio])
 libhealpixwrapper = library_dependency("libhealpixwrapper", depends=[libhealpix_cxx])
 
 provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
@@ -112,6 +114,22 @@ provides(SimpleBuild,
 
 # Binary providers on linux?
 # Ref: https://github.com/JuliaLang/BinDeps.jl/pull/163
+
+provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libcfitsio.so.5"),
+         [libcfitsio], SHA="d4cdf93b8ffe1612ba2fab061e30d79dbdac185ad09929ae9580c54301d6cf4b",
+         os=:Linux)
+
+provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libchealpix.so.0"),
+         [libchealpix], SHA="15166f90f06b0d4ab37478ded3468f7a89cf86138cbf036c105103dc95e2a845",
+         os=:Linux)
+
+provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libhealpix_cxx.so.0"),
+         [libhealpix_cxx], SHA="8f8cf2ee032297fd38d2587e5410426d56edd672d0547dc56e329c732b697f5a",
+         os=:Linux)
+
+provides(Binaries, URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/libhealpixwrapper.so"),
+         [libhealpixwrapper], SHA="5ff014209d8841a4da49222d40eecadac23bec6e6d43da3c3a4fdab1f4886e64",
+         os=:Linux)
 
 BinDeps.@install Dict(:libchealpix => :libchealpix, :libhealpixwrapper => :libhealpixwrapper)
 

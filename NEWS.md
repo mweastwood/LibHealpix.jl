@@ -1,5 +1,10 @@
 # News
 
+## v0.2.1
+
+* The package build system has been revamped.
+* On OSX the package will install `healpix` and `cfitsio` using `Homebrew.jl`
+
 ## v0.2.0
 
 *2017-06-18*
