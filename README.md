@@ -11,6 +11,8 @@ astrophysics.
 [K.M. Górski, Eric Hivon, A.J. Banday, B.D. Wandelt, F.K. Hansen, M. Reinecke, M. Bartelmann, 2005,
 ApJ 622, 759](http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2005ApJ...622..759G)
 
+[![LibHealpix](http://pkg.julialang.org/badges/LibHealpix_0.6.svg)](http://pkg.julialang.org/detail/LibHealpix)
+
 [![Build Status](https://travis-ci.org/mweastwood/LibHealpix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/LibHealpix.jl)
 [![codecov](https://codecov.io/gh/mweastwood/LibHealpix.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/mweastwood/LibHealpix.jl)
 
