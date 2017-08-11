@@ -419,8 +419,8 @@ function query_disc(nside, ordering, θ, ϕ, radius; inclusive=true)
                 (Cint, Cint, Cdouble, Cdouble, Cdouble, Bool, Ref{Cint}),
                 nside, ordering, θ, ϕ, radius, inclusive, len)
     arr = unsafe_wrap(Array, ptr, len[], true)
-    arr .+= 1 # convert to 1-based indexing
-    convert(Vector{Int}, arr)
+    arr .+= Cint(1) # convert to 1-based indexing
+    arr
 end
 
 function query_disc(map::HealpixMap, θ, ϕ, radius; inclusive=true)
