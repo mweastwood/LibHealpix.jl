@@ -269,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Library",
     "title": "LibHealpix.writehealpix",
     "category": "Function",
-    "text": "writehealpix(filename, map)\n\nWrite the HealpixMap to disk as a FITS image.\n\nArguments\n\nfilename - the name of the output file (eg. \"/path/to/healpix.fits\")\nmap - the Healpix map to write\n\nKeyword Arguments\n\ncoordsys - the coordinate system of the map (one of \"G\" galactic, \"E\" ecliptic, or \"C\"   celestial)\nreplace - if set to true, the output file will be automatically overwritten if it exists\n\nSee also: readhealpix\n\n\n\n"
+    "text": "writehealpix(filename, map)\n\nWrite the HealpixMap to disk as a FITS image.\n\nArguments:\n\nfilename - the name of the output file (eg. \"/path/to/healpix.fits\")\nmap - the Healpix map to write\n\nKeyword Arguments:\n\ncoordsys - the coordinate system of the map (one of \"G\" galactic, \"E\" ecliptic, or \"C\"   celestial)\nreplace - if set to true, the output file will be automatically overwritten if it exists\n\nSee also: readhealpix\n\n\n\n"
 },
 
 {
@@ -277,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Library",
     "title": "LibHealpix.readhealpix",
     "category": "Function",
-    "text": "readhealpix(filename)\n\nRead a HealpixMap (stored as a FITS image) from disk.\n\nArguments\n\nfilename - the name of the input file (eg. \"/path/to/healpix.fits\")\n\nSee also: writehealpix\n\n\n\n"
+    "text": "readhealpix(filename)\n\nRead a HealpixMap (stored as a FITS image) from disk.\n\nArguments:\n\nfilename - the name of the input file (eg. \"/path/to/healpix.fits\")\n\nSee also: writehealpix\n\n\n\n"
 },
 
 {
@@ -285,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Library",
     "title": "LibHealpix.ang2pix",
     "category": "Function",
-    "text": "ang2pix(map, theta, phi)\n\nCompute the pixel index that contains the point on the sphere given by the spherical coordinates ( ).\n\nArguments:\n\nmap - the input Healpix map\ntheta - the inclination angle \nphi - the azimuthal angle \n\nUsage:\n\njulia> ang2pix(RingHealpixMap(Float64, 256), π/2, π/2)\n392961\n\njulia> ang2pix(NestHealpixMap(Float64, 256), π/2, π/2)\n354987\n\nSee Also: pix2ang, ang2pix_nest, ang2pix_ring\n\n\n\n"
+    "text": "ang2pix(map, theta, phi)\n\nCompute the pixel index that contains the point on the sphere given by the spherical coordinates ( ).\n\nArguments:\n\nmap - the input Healpix map\ntheta - the inclination angle  (in radians)\nphi - the azimuthal angle  (in radians)\n\nUsage:\n\njulia> ang2pix(RingHealpixMap(Float64, 256), π/2, π/2)\n392961\n\njulia> ang2pix(NestHealpixMap(Float64, 256), π/2, π/2)\n354987\n\nSee Also: pix2ang, ang2pix_nest, ang2pix_ring\n\n\n\n"
 },
 
 {
@@ -313,11 +313,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "library/#LibHealpix.interpolate",
+    "page": "Library",
+    "title": "LibHealpix.interpolate",
+    "category": "Function",
+    "text": "LibHealpix.interpolate(map, theta, phi)\n\nLinearly interpolate the Healpix map at the given spherical coordinates ( ).\n\nArguments:\n\nmap - the input Healpix map\ntheta - the inclination angle  (in radians)\nphi - the azimuthal angle  (in radians)\n\nUsage:\n\njulia> healpixmap = RingHealpixMap(Float64, 256)\n       for idx = 1:length(healpixmap)\n           healpixmap[idx] = idx\n       end\n       LibHealpix.interpolate(healpixmap, 0, 0)\n2.5\n\nSee Also: ang2pix\n\n\n\n"
+},
+
+{
+    "location": "library/#LibHealpix.query_disc",
+    "page": "Library",
+    "title": "LibHealpix.query_disc",
+    "category": "Function",
+    "text": "query_disc(nside, ordering, theta, phi, radius; inclusive=true)\nquery_disc(map, theta, phi, radius; inclusive=true)\n\nReturn a list of all pixels contained within a circular disc of the given radius.\n\nArguments:\n\nnside - the Healpix resolution parameter\nordering - the ordering of the Healpix map (either LibHealpix.ring or LibHealpix.nest\ntheta - the inclination angle  (in radians)\nphi - the azimuthal angle  (in radians)\nradius - the radius of the disc (in radians)\nmap - the input Healpix map (nside and ordering will be inferred from the map)\n\nKeyword Arguments:\n\ninclusive - if set to `true pixels partially contained within the disc will be included,   otherwise they are excluded\n\nUsage:\n\njulia> query_disc(512, LibHealpix.ring, 0, 0, deg2rad(10/60), inclusive=false)\n4-element Array{Int32,1}:\n 1\n 2\n 3\n 4\n\njulia> query_disc(512, LibHealpix.ring, 0, 0, deg2rad(10/60), inclusive=true) |> length\n24\n\n\n\n"
+},
+
+{
     "location": "library/#Healpix-Maps-1",
     "page": "Library",
     "title": "Healpix Maps",
     "category": "section",
-    "text": "HealpixMap\nRingHealpixMap\nNestHealpixMap\nwritehealpix\nreadhealpix\nang2pix\npix2ang\nvec2pix\npix2vec"
+    "text": "HealpixMap\nRingHealpixMap\nNestHealpixMap\nwritehealpix\nreadhealpix\nang2pix\npix2ang\nvec2pix\npix2vec\nLibHealpix.interpolate\nquery_disc"
 },
 
 {
