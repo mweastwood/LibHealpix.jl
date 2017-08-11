@@ -18,12 +18,12 @@
 
 Write the `HealpixMap` to disk as a FITS image.
 
-**Arguments**
+**Arguments:**
 
 - `filename` - the name of the output file (eg. `"/path/to/healpix.fits"`)
 - `map` - the Healpix map to write
 
-**Keyword Arguments**
+**Keyword Arguments:**
 
 - `coordsys` - the coordinate system of the map (one of `"G"` galactic, `"E"` ecliptic, or `"C"`
     celestial)
@@ -73,7 +73,7 @@ end
 
 Read a `HealpixMap` (stored as a FITS image) from disk.
 
-**Arguments**
+**Arguments:**
 
 - `filename` - the name of the input file (eg. `"/path/to/healpix.fits"`)
 

@@ -195,8 +195,8 @@ $(θ, ϕ)$.
 **Arguments:**
 
 - `map` - the input Healpix map
-- `theta` - the inclination angle $θ$
-- `phi` - the azimuthal angle $ϕ$
+- `theta` - the inclination angle $θ$ (in radians)
+- `phi` - the azimuthal angle $ϕ$ (in radians)
 
 **Usage:**
 
@@ -354,15 +354,15 @@ function interpolate(map::HealpixMap{Float64}, θ, ϕ)
 end
 
 doc"""
-    interpolate(map, theta, phi)
+    LibHealpix.interpolate(map, theta, phi)
 
 Linearly interpolate the Healpix map at the given spherical coordinates $(θ, ϕ)$.
 
 **Arguments:**
 
 - `map` - the input Healpix map
-- `theta` - the inclination angle $θ$
-- `phi` - the azimuthal angle $ϕ$
+- `theta` - the inclination angle $θ$ (in radians)
+- `phi` - the azimuthal angle $ϕ$ (in radians)
 
 **Usage:**
 
