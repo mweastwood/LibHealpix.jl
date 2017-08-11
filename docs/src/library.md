@@ -39,6 +39,8 @@ ang2pix
 pix2ang
 vec2pix
 pix2vec
+LibHealpix.interpolate
+query_disc
 ```
 
 ## Spherical Harmonic Coefficients

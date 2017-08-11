@@ -18,12 +18,14 @@
 using namespace std;
 
 #include <complex>
-#include <xcomplex.h>
-#include <arr.h>
+#include "xcomplex.h"
 
-#include <healpix_map.h>
-#include <alm.h>
-#include <alm_healpix_tools.h>
+#include "arr.h"
+#include "rangeset.h"
+
+#include "healpix_map.h"
+#include "alm.h"
+#include "alm_healpix_tools.h"
 
 // Note:
 //
@@ -40,6 +42,13 @@ Healpix_Map<T> construct_healpix_map(int nside, int order, T* pixels)
     Healpix_Ordering_Scheme ordering_scheme = static_cast<Healpix_Ordering_Scheme>(order);
     auto map = Healpix_Map<T>();
     map.Set(arr_pixels, ordering_scheme);
+    return map;
+}
+
+T_Healpix_Base<int> construct_healpix_base(int nside, int order)
+{
+    Healpix_Ordering_Scheme ordering_scheme = static_cast<Healpix_Ordering_Scheme>(order);
+    auto map = T_Healpix_Base<int>(nside, ordering_scheme, SET_NSIDE);
     return map;
 }
 
@@ -123,6 +132,26 @@ extern "C" {
                               double theta, double phi)
     {
         return interpolate(nside, order, pixels, theta, phi);
+    }
+
+    int* query_disc(int nside, int order,
+                    double theta, double phi, double radius,
+                    bool inclusive, int* output_length)
+    {
+        auto map = construct_healpix_base(nside, order);
+        auto ptg = pointing(theta, phi);
+        auto set = rangeset<int>();
+        if (inclusive)
+            map.query_disc_inclusive(ptg, radius, set);
+        else
+            map.query_disc(ptg, radius, set);
+        // unfortunately we need an extra copy to get this into a standard array that Julia can
+        // take ownership of
+        auto vec = set.toVector();
+        auto arr = new int[vec.size()];
+        copy(vec.begin(), vec.end(), arr);
+        *output_length = vec.size();
+        return arr;
     }
 }
 

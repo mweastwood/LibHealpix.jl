@@ -181,5 +181,32 @@
             @test LibHealpix.interpolate(map, 0, 0) === expected
         end
     end
+
+    @testset "query_disc" begin
+        function check_query(nside, ordering, θ, ϕ, radius, pixel)
+            vec = ang2vec(θ, ϕ)
+            if ordering == LibHealpix.ring
+                vec′ = pix2vec_ring(nside, pixel)
+            else
+                vec′ = pix2vec_nest(nside, pixel)
+            end
+            distance = acos(clamp(dot(vec, vec′), -1, 1))
+            distance < radius
+        end
+
+        nside = 256
+        for (ordering, map) in ((LibHealpix.ring, RingHealpixMap(Float64, nside)),
+                                (LibHealpix.nest, NestHealpixMap(Float64, nside)))
+            for (θ, ϕ) in ((0, 0), (π, 2π), (π/2, π), (0.1, 0.3), (2.0, 3.0))
+                radius = deg2rad(1)
+                inclusive_pixels = query_disc(nside, ordering, θ, ϕ, radius)
+                exclusive_pixels = query_disc(nside, ordering, θ, ϕ, radius, inclusive=false)
+                @test length(inclusive_pixels) > length(exclusive_pixels)
+                @test inclusive_pixels == query_disc(map, θ, ϕ, radius)
+                @test exclusive_pixels == query_disc(map, θ, ϕ, radius, inclusive=false)
+                @test all(check_query.(nside, ordering, θ, ϕ, radius, exclusive_pixels))
+            end
+        end
+    end
 end
 

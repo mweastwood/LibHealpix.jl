@@ -199,61 +199,54 @@ function vec2ang(vec)
     θ, ϕ
 end
 
-types = (Clong == Clonglong)? (:Clong,) : (:Clong, :Clonglong)
-for T in types
-    # Append "64" to the ccall function name when defining for Clonglong
-    # (note we omit this suffix from the Julia function name -- just let dispatch take care of it)
-    funcname(f) = (T == :Clong)? string(f) : string(f)*"64"
-
-    for f in (:nest2ring, :ring2nest)
-        @eval function $f(nside::$T, ipix::$T)
-            ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
-            ipixoutptr = Ref{$T}(0)
-            ccall(($(funcname(f)), libchealpix), Void, ($T, $T, Ref{$T}),
-                  nside, ipix, ipixoutptr)
-            ipixoutptr[] + 1 # Add one to convert to a 1-indexed scheme
-        end
+for f in (:nest2ring, :ring2nest)
+    @eval function $f(nside::Integer, ipix::Integer)
+        ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
+        ipixoutptr = Ref{Clong}(0)
+        ccall(($(string(f)), libchealpix), Void, (Clong, Clong, Ref{Clong}),
+              nside, ipix, ipixoutptr)
+        ipixoutptr[] + 1 # Add one to convert to a 1-indexed scheme
     end
+end
 
-    for f in (:ang2pix_nest, :ang2pix_ring)
-        @eval function $f(nside::$T, θ::Real, ϕ::Real)
-            θ′, ϕ′ = verify_angles(θ, ϕ)
-            ipixptr = Ref{$T}(0)
-            ccall(($(funcname(f)), libchealpix), Void, ($T, Cdouble, Cdouble, Ref{$T}),
-                  nside, θ′, ϕ′, ipixptr)
-            ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
-        end
+for f in (:ang2pix_nest, :ang2pix_ring)
+    @eval function $f(nside::Integer, θ::Real, ϕ::Real)
+        θ′, ϕ′ = verify_angles(θ, ϕ)
+        ipixptr = Ref{Clong}(0)
+        ccall(($(string(f)), libchealpix), Void, (Clong, Cdouble, Cdouble, Ref{Clong}),
+              nside, θ′, ϕ′, ipixptr)
+        ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
     end
+end
 
-    for f in (:pix2ang_nest, :pix2ang_ring)
-        @eval function $f(nside::$T, ipix::$T)
-            ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
-            θptr = Ref{Cdouble}(0.0)
-            ϕptr = Ref{Cdouble}(0.0)
-            ccall(($(funcname(f)), libchealpix), Void, ($T, $T, Ref{Cdouble}, Ref{Cdouble}),
-                  nside, ipix, θptr, ϕptr)
-            θptr[], ϕptr[]
-        end
+for f in (:pix2ang_nest, :pix2ang_ring)
+    @eval function $f(nside::Integer, ipix::Integer)
+        ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
+        θptr = Ref{Cdouble}(0.0)
+        ϕptr = Ref{Cdouble}(0.0)
+        ccall(($(string(f)), libchealpix), Void, (Clong, Clong, Ref{Cdouble}, Ref{Cdouble}),
+              nside, ipix, θptr, ϕptr)
+        θptr[], ϕptr[]
     end
+end
 
-    for f in (:vec2pix_nest, :vec2pix_ring)
-        @eval function $f(nside::$T, vec::AbstractVector)
-            vec′ = UnitVector(vec)
-            ipixptr = Ref{$T}(0)
-            ccall(($(funcname(f)), libchealpix), Void, ($T, Ptr{Cdouble}, Ref{$T}),
-                  nside, vec′, ipixptr)
-            ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
-        end
+for f in (:vec2pix_nest, :vec2pix_ring)
+    @eval function $f(nside::Integer, vec::AbstractVector)
+        vec′ = UnitVector(vec)
+        ipixptr = Ref{Clong}(0)
+        ccall(($(string(f)), libchealpix), Void, (Clong, Ptr{Cdouble}, Ref{Clong}),
+              nside, vec′, ipixptr)
+        ipixptr[] + 1 # Add one to convert to a 1-indexed scheme
     end
+end
 
-    for f in (:pix2vec_nest, :pix2vec_ring)
-        @eval function $f(nside::$T, ipix::$T)
-            ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
-            vec = Ref{UnitVector}(UnitVector(0, 0, 1))
-            ccall(($(funcname(f)), libchealpix), Void, ($T, $T, Ptr{Cdouble}),
-                  nside, ipix, vec)
-            vec[]
-        end
+for f in (:pix2vec_nest, :pix2vec_ring)
+    @eval function $f(nside::Integer, ipix::Integer)
+        ipix -= 1 # Subtract one to convert back to a 0-indexed scheme
+        vec = Ref{UnitVector}(UnitVector(0, 0, 1))
+        ccall(($(string(f)), libchealpix), Void, (Clong, Clong, Ptr{Cdouble}),
+              nside, ipix, vec)
+        vec[]
     end
 end
 
