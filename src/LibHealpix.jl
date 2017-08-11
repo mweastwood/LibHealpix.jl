@@ -30,6 +30,7 @@ export vec2pix_nest, vec2pix_ring, pix2vec_nest, pix2vec_ring
 export HealpixMap, RingHealpixMap, NestHealpixMap
 export ang2pix, pix2ang, vec2pix, pix2vec
 export isring, isnest
+export query_disc
 
 # alm.jl
 export Alm, @lm, lm

@@ -379,3 +379,51 @@ julia> healpixmap = RingHealpixMap(Float64, 256)
 """
 interpolate
 
+doc"""
+    query_disc(nside, ordering, theta, phi, radius; inclusive=true)
+    query_disc(map, theta, phi, radius; inclusive=true)
+
+Return a list of all pixels contained within a circular disc of the given radius.
+
+**Arguments:**
+
+- `nside` - the Healpix resolution parameter
+- `ordering` - the ordering of the Healpix map (either `LibHealpix.ring` or `LibHealpix.nest`
+- `theta` - the inclination angle $θ$ (in radians)
+- `phi` - the azimuthal angle $ϕ$ (in radians)
+- `radius` - the radius of the disc (in radians)
+- `map` - the input Healpix map (`nside` and `ordering` will be inferred from the map)
+
+**Keyword Arguments:**
+
+- `inclusive` - if set to `true pixels partially contained within the disc will be included,
+    otherwise they are excluded
+
+**Usage:**
+
+```jldoctest
+julia> query_disc(512, LibHealpix.ring, 0, 0, deg2rad(10/60), inclusive=false)
+4-element Array{Int32,1}:
+ 1
+ 2
+ 3
+ 4
+
+julia> query_disc(512, LibHealpix.ring, 0, 0, deg2rad(10/60), inclusive=true) |> length
+24
+```
+"""
+function query_disc(nside, ordering, θ, ϕ, radius; inclusive=true)
+    len = Ref{Cint}()
+    ptr = ccall(("query_disc", libhealpixwrapper), Ptr{Cint},
+                (Cint, Cint, Cdouble, Cdouble, Cdouble, Bool, Ref{Cint}),
+                nside, ordering, θ, ϕ, radius, inclusive, len)
+    arr = unsafe_wrap(Array, ptr, len[])
+    arr .+= 1 # convert to 1-based indexing
+    convert(Vector{Int}, arr)
+end
+
+function query_disc(map::HealpixMap, θ, ϕ, radius; inclusive=true)
+    query_disc(map.nside, ordering(map), θ, ϕ, radius, inclusive=inclusive)
+end
+
