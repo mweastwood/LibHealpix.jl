@@ -1,5 +1,13 @@
 # News
 
+## v0.2.2
+
+*20117-08-11*
+
+* implement `query_disc` for getting a list of all pixels interior to a disc
+* widen the signature of most pixel functions to `Integer`
+* fix the Mac build (`cfitsio` was moved away from the `science` tap)
+
 ## v0.2.1
 
 *2017-07-09*
