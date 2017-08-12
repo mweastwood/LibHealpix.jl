@@ -2,7 +2,7 @@
 
 ## v0.2.2
 
-*20117-08-11*
+*2017-08-11*
 
 * implement `query_disc` for getting a list of all pixels interior to a disc
 * widen the signature of most pixel functions to `Integer`
