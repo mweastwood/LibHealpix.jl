@@ -88,11 +88,7 @@ T interpolate(int nside, int order, T* pixels, double theta, double phi)
 {
     auto map = construct_healpix_map(nside, order, pixels);
     auto ptg = pointing(theta, phi);
-    auto pix = fix_arr<int, 4>();    // the index of the 4 nearest pixels
-    auto wgt = fix_arr<double, 4>(); // the weights for the 4 nearest pixels
-    map.get_interpol(ptg, pix, wgt);
-    return wgt[0]*map[pix[0]] + wgt[1]*map[pix[1]]
-            + wgt[2]*map[pix[2]] + wgt[3]*map[pix[3]];
+    return map.interpolated_value(ptg);
 }
 
 extern "C" {
