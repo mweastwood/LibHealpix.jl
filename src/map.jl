@@ -341,16 +341,37 @@ end
 @inline _pixels(map::HealpixMap) = map.pixels
 @inline _pixels(other) = other
 
-function interpolate(map::HealpixMap{Float32}, θ, ϕ)
+function interpolate_cxx(map::HealpixMap{Float32}, θ, ϕ)
+    # this function is used to test the Julia implementation
+    θ′, ϕ′ = verify_angles(θ, ϕ)
     ccall(("interpolate_float", libhealpixwrapper), Cfloat,
           (Cint, Cint, Ptr{Cfloat}, Cdouble, Cdouble),
-          map.nside, ordering(map), map.pixels, θ, ϕ)
+          map.nside, ordering(map), map.pixels, θ′, ϕ′)
 end
 
-function interpolate(map::HealpixMap{Float64}, θ, ϕ)
+function interpolate_cxx(map::HealpixMap{Float64}, θ, ϕ)
+    # this function is used to test the Julia implementation
+    θ′, ϕ′ = verify_angles(θ, ϕ)
     ccall(("interpolate_double", libhealpixwrapper), Cdouble,
           (Cint, Cint, Ptr{Cdouble}, Cdouble, Cdouble),
-          map.nside, ordering(map), map.pixels, θ, ϕ)
+          map.nside, ordering(map), map.pixels, θ′, ϕ′)
+end
+
+function _interpolate_left_right(map, ring, θ, ϕ)
+    startpix, ringpix, θ′, shifted = ring_info2(map.nside, ring)
+    δ = 0.5shifted
+    dϕ = 2π / ringpix
+
+    # pixel to the left of the interpolation point
+    i1 = floor(Int, ϕ/dϕ - δ)
+    ϕ1 = (i1 + δ)*dϕ
+    weight = (ϕ - ϕ1)/dϕ
+    i1 = mod(i1, ringpix)
+
+    # pixel to the right of the interpolation point
+    i2 = mod(i1 + 1, ringpix)
+
+    θ′, startpix+i1, startpix+i2, weight
 end
 
 doc"""
@@ -377,7 +398,78 @@ julia> healpixmap = RingHealpixMap(Float64, 256)
 
 **See Also:** [`ang2pix`](@ref)
 """
-interpolate
+function interpolate(map, θ, ϕ)
+    T = eltype(map)
+    S = float(real(T))
+    npix = length(map)
+    pix = MVector(0, 0, 0, 0)
+    wgt = MVector(zero(S), zero(S), zero(S), zero(S))
+    θ, ϕ = verify_angles(θ, ϕ)
+    z = cos(θ)
+    ring1 = ring_above(map.nside, z)
+    ring2 = ring1 + 1
+
+    if ring1 > 0
+        # ring above the interpolation point
+        θ1, pix[1], pix[2], weight = _interpolate_left_right(map, ring1, θ, ϕ)
+        wgt[1] = 1 - weight
+        wgt[2] = weight
+    end
+
+    if ring2 < 4map.nside
+        # ring below the interpolation point
+        θ2, pix[3], pix[4], weight = _interpolate_left_right(map, ring2, θ, ϕ)
+        wgt[3] = 1 - weight
+        wgt[4] = weight
+    end
+
+    if ring1 == 0
+        # north pole
+        pix[1] = (pix[3]+1)&3 + 1
+        pix[2] = (pix[4]+1)&3 + 1
+        weight = θ / θ2
+        fac = (1 - weight)/4
+        wgt[1] = fac
+        wgt[2] = fac
+        wgt[3] = wgt[3]*weight + fac
+        wgt[4] = wgt[4]*weight + fac
+    elseif ring2 == 4map.nside
+        # south pole
+        pix[3] = (pix[1]+1)&3 + npix - 3
+        pix[4] = (pix[2]+1)&3 + npix - 3
+        weight = (θ - θ1)/(π - θ1)
+        fac = weight/4
+        wgt[1] = wgt[1]*(1-weight) + fac
+        wgt[2] = wgt[2]*(1-weight) + fac
+        wgt[3] = fac
+        wgt[4] = fac
+    else
+        weight = (θ - θ1)/(θ2 - θ1)
+        wgt[1] *= 1 - weight
+        wgt[2] *= 1 - weight
+        wgt[3] *= weight
+        wgt[4] *= weight
+    end
+
+    # convert to ring coordinates if necessary
+    if ordering(map) == nest
+        for idx = 1:4
+            pix[idx] = ring2nest(map.nside, pix[idx])
+        end
+    end
+
+    # compute the interpolation from the pixels and weights
+    numerator   = zero(T)
+    denominator = zero(S)
+    for idx = 1:4
+        val = map[pix[idx]]
+        wval = wgt[idx]
+        # if !unseen
+        numerator   += wval * val
+        denominator += wval
+    end
+    numerator / denominator
+end
 
 doc"""
     query_disc(nside, ordering, theta, phi, radius; inclusive=true)
@@ -414,10 +506,11 @@ julia> query_disc(512, LibHealpix.ring, 0, 0, deg2rad(10/60), inclusive=true) |>
 ```
 """
 function query_disc(nside, ordering, θ, ϕ, radius; inclusive=true)
+    θ′, ϕ′ = verify_angles(θ, ϕ)
     len = Ref{Cint}()
     ptr = ccall(("query_disc", libhealpixwrapper), Ptr{Cint},
                 (Cint, Cint, Cdouble, Cdouble, Cdouble, Bool, Ref{Cint}),
-                nside, ordering, θ, ϕ, radius, inclusive, len)
+                nside, ordering, θ′, ϕ′, radius, inclusive, len)
     arr = unsafe_wrap(Array, ptr, len[], true)
     arr .+= Cint(1) # convert to 1-based indexing
     arr

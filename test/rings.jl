@@ -47,7 +47,7 @@
             @test isapprox(stop_θ, θ, atol=1e-15)
             @test start_ϕ < stop_ϕ
             if shifted
-                @test start_ϕ > 0
+                @test start_ϕ == π/ringpix
             else
                 @test start_ϕ == 0
             end

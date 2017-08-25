@@ -65,6 +65,7 @@ function Base.show(io::IO, exception::LibHealpixException)
 end
 
 include("pixel.jl")
+include("rings.jl")
 include("map.jl")
 include("alm.jl")
 include("transforms.jl")

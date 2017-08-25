@@ -14,7 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Functions in this file are translated from C++ to Julia (mostly verbatim) from Healpix_cxx.
-# Healpix_cxx is licensed under GPL-2.0 or later.
+# Healpix_cxx is licensed under GPL-2.0 or later, and is developed by the Max-Planck-Institut fuer
+# Astrophysik.
 
 doc"""
 Returns the number of the next ring to the north of $z=\cos(θ)$.  It may return 0; in this case $z$
