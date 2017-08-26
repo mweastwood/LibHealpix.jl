@@ -17,5 +17,5 @@ docker cp -L libhealpixjl:/root/.julia/v0.6/LibHealpix/deps/usr/lib/libchealpix.
 docker cp -L libhealpixjl:/root/.julia/v0.6/LibHealpix/deps/usr/lib/libhealpix_cxx.so.0 usr/lib
 docker cp -L libhealpixjl:/root/.julia/v0.6/LibHealpix/deps/usr/lib/libhealpixwrapper.so usr/lib
 
-#docker rm -f libhealpixjl
+docker rm -f libhealpixjl
 

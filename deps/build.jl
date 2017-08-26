@@ -18,7 +18,7 @@ end
 
 has_libtool = if is_linux()
     # TODO: a more thorough search for libtool.m4?
-    isfile("/usr/share/aclocal/libtool.m4")
+    isfile("/usr/share/aclocal/libtool.m4") || isfile("/usr/local/share/aclocal/libtool.m4")
 else
     false
 end
@@ -132,9 +132,9 @@ end
 if Sys.ARCH == :x86_64
     # TODO: cross-compile for x86
     provides(Binaries,
-             URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.1-0.tar.gz"),
+             URI("https://dl.bintray.com/mweastwood/LibHealpix.jl/dependencies-v0.2.3-0.tar.gz"),
              [libcfitsio, libchealpix, libhealpix_cxx, libhealpixwrapper],
-             SHA="c5ac81b6895d567081cfecc0e29567ff9c484a64c1448f7aaca7842e390cefff",
+             SHA="aee83f5f36cd48d3cf9e00dbb6231ef09a9eb26aca5b2e30c542ada0a0656b29",
              os=:Linux)
 end
 

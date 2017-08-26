@@ -3,7 +3,7 @@
 set -eu
 cd `dirname $0`
 
-VERSION=v0.2.1-0
+VERSION=v0.2.3-0
 TARBALL=dependencies-$VERSION.tar.gz
 
 tar -czvf $TARBALL usr
