@@ -1,5 +1,13 @@
 # News
 
+## v0.2.3
+
+*2017-08-26*
+
+* implement `interpolate` in Julia (fixes a bug for interpolation near phi=2pi and provides a 30% speed boost)
+* use `verify_angles` in `query_disc` and `interpolate`
+* update to Healpix 3.31
+
 ## v0.2.2
 
 *2017-08-11*
