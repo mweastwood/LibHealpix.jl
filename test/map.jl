@@ -171,14 +171,37 @@
     end
 
     @testset "interpolate" begin
-        for T in (Float32, Float64)
-            map = RingHealpixMap(T, 4)
-            map[1] = rand(T)
-            map[2] = rand(T)
-            map[3] = rand(T)
-            map[4] = rand(T)
-            expected = (map[1] + map[2] + map[3] + map[4])/4
-            @test LibHealpix.interpolate(map, 0, 0) === expected
+        add2pi(θ, ϕ) = (θ, ϕ+2π)
+        sub2pi(θ, ϕ) = (θ, ϕ-2π)
+        for T in (Float32, Float64), M in (RingHealpixMap, NestHealpixMap)
+            map = M(T, 2)
+            map[:] = rand(T, length(map))
+            if LibHealpix.ordering(map) == LibHealpix.ring
+                expected = (map[1] + map[2] + map[3] + map[4])/4
+            else
+                expected = (map[4] + map[8] + map[12] + map[16])/4
+            end
+            @test isapprox(LibHealpix.interpolate(map, 0, 0), T(expected), atol=2e-15)
+
+            interpolation = [LibHealpix.interpolate(map, pix2ang(map, idx)...)
+                                for idx = 1:length(map)]
+            @test all(isapprox.(map, interpolation, atol=2e-15))
+
+            interpolation = [LibHealpix.interpolate(map, add2pi(pix2ang(map, idx)...)...)
+                                for idx = 1:length(map)]
+            @test all(isapprox.(map, interpolation, atol=2e-15))
+
+            interpolation = [LibHealpix.interpolate(map, sub2pi(pix2ang(map, idx)...)...)
+                                for idx = 1:length(map)]
+            @test all(isapprox.(map, interpolation, atol=2e-15))
+
+            # Check the interpolation procedure against the C++ implementation
+            # (note the C++ implementation seems to have a bug near 2π, so we don't test exactly
+            # there, but that case should be covered above)
+            for θ in (0.0, 1.0, π/2, 2.0, π), ϕ in (0.0, 1.0, π, 4.0, 2π-0.001)
+                @test isapprox(LibHealpix.interpolate(map, θ, ϕ),
+                               LibHealpix.interpolate_cxx(map, θ, ϕ), atol=2e-15)
+            end
         end
     end
 

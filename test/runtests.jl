@@ -20,6 +20,7 @@ using FITSIO.Libcfitsio
 srand(123)
 @testset "LibHealpix Tests" begin
     include("pixel.jl")
+    include("rings.jl")
     include("map.jl")
     include("alm.jl")
     include("transforms.jl")

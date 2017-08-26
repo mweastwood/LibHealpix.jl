@@ -83,8 +83,8 @@ provides(SimpleBuild,
               end
           end), libcfitsio)
 
-version = "3.30"
-date = "2015Oct08"
+version = "3.31"
+date = "2016Aug26"
 tar = "Healpix_$(version)_$date.tar.gz"
 url = "http://downloads.sourceforge.net/project/healpix/Healpix_$version/$tar"
 libhealpix_src_directory = joinpath(BinDeps.depsdir(libchealpix), "src", "Healpix_$version")
