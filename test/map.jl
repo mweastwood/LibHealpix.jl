@@ -173,8 +173,7 @@
     @testset "interpolate" begin
         add2pi(θ, ϕ) = (θ, ϕ+2π)
         sub2pi(θ, ϕ) = (θ, ϕ-2π)
-        #for T in (Float32, Float64), M in (RingHealpixMap, NestHealpixMap)
-        for T in (Float64,), M in (RingHealpixMap,)
+        for T in (Float32, Float64), M in (RingHealpixMap, NestHealpixMap)
             map = M(T, 2)
             map[:] = rand(T, length(map))
             if LibHealpix.ordering(map) == LibHealpix.ring
