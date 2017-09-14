@@ -341,6 +341,13 @@ end
 @inline _pixels(map::HealpixMap) = map.pixels
 @inline _pixels(other) = other
 
+"""
+    LibHealpix.UNSEEN()
+
+Get the sentinal value indicating a blind or masked pixel.
+"""
+UNSEEN() = -1.6375e30
+
 function interpolate_cxx(map::HealpixMap{Float32}, θ, ϕ)
     # this function is used to test the Julia implementation
     θ′, ϕ′ = verify_angles(θ, ϕ)
@@ -464,9 +471,10 @@ function interpolate(map, θ, ϕ)
     for idx = 1:4
         val = map[pix[idx]]
         wval = wgt[idx]
-        # if !unseen
-        numerator   += wval * val
-        denominator += wval
+        if val != UNSEEN()
+            numerator   += wval * val
+            denominator += wval
+        end
     end
     numerator / denominator
 end
