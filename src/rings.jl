@@ -57,17 +57,17 @@ function ring_info2(nside, ring)
         θ = atan2(sinθ, cosθ)
         ringpix = 4northring
         shifted = true
-        startpix = 2northring*northring - 1
+        startpix = 2northring*(northring - 1)
     else
         θ = acos((2nside-northring)*fact1)
         ringpix = 4nside
         shifted = ((northring-nside) & 1) == 0
-        startpix = ncap + (northring-nside)*ringpix + 1
+        startpix = ncap + (northring-nside)*ringpix
     end
     if northring != ring # southern hemisphere
         θ = π - θ
-        startpix = npix - startpix - ringpix + 2
+        startpix = npix - startpix - ringpix
     end
-    startpix, ringpix, θ, shifted
+    startpix+1, ringpix, θ, shifted
 end
 
