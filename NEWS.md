@@ -1,20 +1,29 @@
 # News
 
+## v0.2.4
+
+*2017-09-15*
+
+* Fix a bug in the Julia port of interpolation.
+* Add `UNSEEN()` as a sentinal value for blind or masked pixels in Healpix maps. This value is
+  consistent with `healpy` and `libhealpix_cxx`.
+
 ## v0.2.3
 
 *2017-08-26*
 
-* implement `interpolate` in Julia (fixes a bug for interpolation near phi=2pi and provides a 30% speed boost)
-* use `verify_angles` in `query_disc` and `interpolate`
-* update to Healpix 3.31
+* Implement `interpolate` in Julia (fixes a bug for interpolation near phi=2pi and provides a 30%
+  speed boost).
+* Use `verify_angles` in `query_disc` and `interpolate`.
+* Update to Healpix 3.31.
 
 ## v0.2.2
 
 *2017-08-11*
 
-* implement `query_disc` for getting a list of all pixels interior to a disc
-* widen the signature of most pixel functions to `Integer`
-* fix the Mac build (`cfitsio` was moved away from the `science` tap)
+* Implement `query_disc` for getting a list of all pixels interior to a disc.
+* Widen the signature of most pixel functions to `Integer`.
+* Fix the Mac build (`cfitsio` was moved away from the `science` tap).
 
 ## v0.2.1
 
