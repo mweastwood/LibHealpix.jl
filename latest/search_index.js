@@ -313,6 +313,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "library/#LibHealpix.UNSEEN",
+    "page": "Library",
+    "title": "LibHealpix.UNSEEN",
+    "category": "Function",
+    "text": "LibHealpix.UNSEEN()\n\nGet the sentinal value indicating a blind or masked pixel.\n\n\n\n"
+},
+
+{
     "location": "library/#LibHealpix.interpolate",
     "page": "Library",
     "title": "LibHealpix.interpolate",
@@ -333,7 +341,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Library",
     "title": "Healpix Maps",
     "category": "section",
-    "text": "HealpixMap\nRingHealpixMap\nNestHealpixMap\nwritehealpix\nreadhealpix\nang2pix\npix2ang\nvec2pix\npix2vec\nLibHealpix.interpolate\nquery_disc"
+    "text": "HealpixMap\nRingHealpixMap\nNestHealpixMap\nwritehealpix\nreadhealpix\nang2pix\npix2ang\nvec2pix\npix2vec\nLibHealpix.UNSEEN\nLibHealpix.interpolate\nquery_disc"
 },
 
 {
