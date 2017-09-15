@@ -33,7 +33,7 @@
     end
 
     @testset "ring_info2" begin
-        nside = 2
+        nside = 4
         npix  = nside2npix( nside)
         nring = nside2nring(nside)
         for ring = 1:nring
