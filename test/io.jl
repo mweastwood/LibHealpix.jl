@@ -56,7 +56,7 @@ end
 function create_bad_healpix_fits_3(filename, map::HealpixMap{Float64})
     # create a FITS file with a bogus value for tform
     tform = "1X"
-    order = isring(map)? "RING" : "NESTED"
+    order = isring(map) ? "RING" : "NESTED"
     nside = Int32(map.nside)
     file = fits_create_file(filename)
     fits_create_img(file, Int16, Int[])
