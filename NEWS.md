@@ -1,5 +1,13 @@
 # News
 
+## v0.2.5
+
+*2017-11-13*
+
+* Drop support for Julia `v0.6-pre`
+* Run Femtobot to fix deprecations
+* Add the OVRO-LWA sky maps to the documentation (shameless self-promotion)
+
 ## v0.2.4
 
 *2017-09-15*
