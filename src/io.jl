@@ -44,10 +44,10 @@ function writehealpix(filename, map::HealpixMap; coordsys::String = "", replace:
     else
         err("only single and double precision floats can be saved to a FITS file")
     end
-    order = isring(map)? "RING" : "NESTED"
+    order = isring(map) ? "RING" : "NESTED"
     nside = Int32(map.nside)
 
-    file = replace? fits_clobber_file(filename) : fits_create_file(filename)
+    file = replace ? fits_clobber_file(filename) : fits_create_file(filename)
     try
         fits_create_img(file, Int16, Int[])
         fits_write_date(file)
