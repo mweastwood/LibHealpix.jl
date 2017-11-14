@@ -12,9 +12,9 @@ astrophysics.
 ApJ 622, 759](http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2005ApJ...622..759G)
 
 [![LibHealpix](http://pkg.julialang.org/badges/LibHealpix_0.6.svg)](http://pkg.julialang.org/detail/LibHealpix)
-
 [![Build Status](https://travis-ci.org/mweastwood/LibHealpix.jl.svg?branch=master)](https://travis-ci.org/mweastwood/LibHealpix.jl)
 [![codecov](https://codecov.io/gh/mweastwood/LibHealpix.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/mweastwood/LibHealpix.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1048406.svg)](https://doi.org/10.5281/zenodo.1048406)
 
 **Documentation:** http://mweastwood.info/LibHealpix.jl/stable/
 
