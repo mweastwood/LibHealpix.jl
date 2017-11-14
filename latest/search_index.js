@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Examples",
     "category": "section",
-    "text": "Many astronomical maps are released as Healpix images. The following two maps show thermal dust and H-alpha emission respectively. To first order, dust traces the interstellar gas density, so bright regions in this map correspond to dense regions of the interstellar medium. On the other hand H-alpha emission traces ionized gas in the interstellar medium. These ionized regions tend to be sites of active star formation.Dust(Image: Dust Map)H-alpha(Image: Halpha Map)"
+    "text": "Many astronomical maps are released as Healpix images. The following two maps show thermal dust and H-alpha emission respectively. To first order, dust traces the interstellar gas density, so bright regions in this map correspond to dense regions of the interstellar medium. On the other hand H-alpha emission traces ionized gas in the interstellar medium. These ionized regions tend to be sites of active star formation.Low Frequency Radio(Image: OVRO-LWA Sky Map)Dust(Image: Dust Map)H-alpha(Image: Halpha Map)"
 },
 
 {
