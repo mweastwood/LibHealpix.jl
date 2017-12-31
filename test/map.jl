@@ -167,6 +167,13 @@
             @test f.(1, map, map) == Map(nside, f.(1, pixels, pixels))
             @test f.(map, map, map) == Map(nside, f.(pixels, pixels, pixels))
             @inferred broadcast(f, map, map, map)
+
+            map1 = Map(nside, randn(npix))
+            map2 = deepcopy(map1)
+            map1 .+= 1
+            @test map1 == map2 .+ 1
+            map1 .= sin.(map1)
+            @test map1 == sin.(map2 .+ 1)
         end
     end
 

@@ -154,6 +154,14 @@
         @test f.(1, alm, alm) == Alm(lmax, mmax, f.(1, coefficients, coefficients))
         @test f.(alm, alm, alm) == Alm(lmax, mmax, f.(coefficients, coefficients, coefficients))
         @inferred broadcast(f, alm, alm, alm)
+
+        alm1 = Alm(Complex128, lmax, mmax)
+        rand!(alm1.coefficients)
+        alm2 = deepcopy(alm1)
+        alm1 .+= 1
+        @test alm1 == alm2 .+ 1
+        alm1 .= sin.(alm1)
+        @test alm1 == sin.(alm2 .+ 1)
     end
 end
 
