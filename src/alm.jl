@@ -288,6 +288,7 @@ Base.:(==)(lhs::Alm, rhs::AbstractVector) = false
 Base.:(==)(lhs::AbstractVector, rhs::Alm) = false
 
 # Custom broadcasting
+Base.Broadcast.broadcast_indices(::Type{<:Alm}, alm) = indices(alm)
 Base.Broadcast._containertype(::Type{<:Alm}) = Alm
 Base.Broadcast.promote_containertype(::Type{Any}, ::Type{Alm}) = Alm
 Base.Broadcast.promote_containertype(::Type{Alm}, ::Type{Any}) = Alm

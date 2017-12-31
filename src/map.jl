@@ -303,6 +303,7 @@ Base.:(==)(lhs::HealpixMap, rhs::AbstractVector) = false
 Base.:(==)(lhs::AbstractVector, rhs::HealpixMap) = false
 
 # Custom broadcasting
+Base.Broadcast.broadcast_indices(::Type{<:HealpixMap}, map) = indices(map)
 Base.Broadcast._containertype(::Type{<:RingHealpixMap}) = RingHealpixMap
 Base.Broadcast._containertype(::Type{<:NestHealpixMap}) = NestHealpixMap
 Base.Broadcast.promote_containertype(::Type{Any}, ::Type{T}) where {T<:HealpixMap} = T

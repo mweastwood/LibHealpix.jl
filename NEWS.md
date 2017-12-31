@@ -1,5 +1,11 @@
 # News
 
+## v0.2.6
+
+*unreleased*
+
+* Bugfix for broadcasting operations like `.+=` and `.=`
+
 ## v0.2.5
 
 *2017-11-13*
