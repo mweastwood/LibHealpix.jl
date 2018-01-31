@@ -30,7 +30,7 @@ provides(AptGet, Dict("libcfitsio3-dev"    => libcfitsio,
 if is_apple()
     using Homebrew
     provides(Homebrew.HB, "cfitsio", libcfitsio, os=:Darwin)
-    provides(Homebrew.HB, "homebrew/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
+    provides(Homebrew.HB, "brewsci/science/healpix", [libchealpix, libhealpix_cxx], os=:Darwin)
     if !has_pkg_config
         Homebrew.add("pkg-config")
         has_pkg_config = true
