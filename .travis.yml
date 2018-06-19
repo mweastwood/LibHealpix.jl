@@ -3,7 +3,7 @@ os:
     - linux
     - osx
 julia:
-    - 0.6
+    - 0.7
 notifications:
     email: false
 sudo: false
@@ -14,6 +14,7 @@ addons:
             - libcfitsio3-dev
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+    - julia -e 'using Pkg; pkg"add FITSIO#master"'
     - julia -e 'Pkg.clone(pwd()); Pkg.build("LibHealpix")'
     - julia --check-bounds=yes -e 'Pkg.test("LibHealpix"; coverage=true)'
 after_success:
